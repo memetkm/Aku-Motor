@@ -1,0 +1,21 @@
+{
+  "name": "aku-motor",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "build:shared": "npm run build -w @aku-motor/shared",
+    "build:api": "npm run build -w @aku-motor/api",
+    "build:web": "npm run build -w @aku-motor/web",
+    "dev:api": "npm run dev -w @aku-motor/api",
+    "dev:web": "npm run dev -w @aku-motor/web",
+    "prisma:migrate": "npm run prisma:migrate -w @aku-motor/api",
+    "prisma:seed": "npm run prisma:seed -w @aku-motor/api",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  }
+}
