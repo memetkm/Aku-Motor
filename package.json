@@ -3,16 +3,17 @@
   "private": true,
   "version": "1.0.0",
   "workspaces": [
-    "apps/*",
+    "apps/api",
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build:shared && npm run build:api && npm run build:web",
     "build:shared": "npm run build -w @aku-motor/shared",
     "build:api": "npm run build -w @aku-motor/api",
-    "build:web": "npm run build -w @aku-motor/web",
+    "build:web": "cd apps/web && flutter build web",
     "dev:api": "npm run dev -w @aku-motor/api",
-    "dev:web": "npm run dev -w @aku-motor/web",
+    "dev:web": "cd apps/web && flutter run -d chrome",
+    "test:web": "cd apps/web && flutter test",
     "prisma:migrate": "npm run prisma:migrate -w @aku-motor/api",
     "prisma:seed": "npm run prisma:seed -w @aku-motor/api",
     "docker:up": "docker compose up -d",
