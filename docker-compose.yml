@@ -1,0 +1,17 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: aku-motor-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: aku_motor
+      MYSQL_USER: aku_motor
+      MYSQL_PASSWORD: aku_motor
+    ports:
+      - "3306:3306"
+    volumes:
+      - aku_motor_data:/var/lib/mysql
+
+volumes:
+  aku_motor_data:
