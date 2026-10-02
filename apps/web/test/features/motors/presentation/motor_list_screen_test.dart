@@ -31,6 +31,7 @@ void main() {
     await tester.pumpWidget(subject(repository));
     expect(find.byKey(const Key('initialLoading')), findsOneWidget);
     repository.loadCompleter.complete([]);
+    await tester.pumpAndSettle();
   });
 
   testWidgets('menampilkan empty state', (tester) async {

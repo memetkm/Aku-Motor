@@ -39,7 +39,7 @@ class MotorListNotifier extends AsyncNotifier<List<Motor>> {
         () => _repository.delete(id),
       );
 
-  Future<bool> _mutate(Future<void> Function() action) async {
+  Future<bool> _mutate(Future<dynamic> Function() action) async {
     final previous = state.valueOrNull ?? const <Motor>[];
     state = const AsyncLoading<List<Motor>>().copyWithPrevious(state);
     try {

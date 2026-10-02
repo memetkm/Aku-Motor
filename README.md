@@ -38,5 +38,6 @@ Uji persistence manual: tambah motor, edit kilometernya, refresh browser atau bu
 - `packages/shared`: model TypeScript yang masih digunakan backend.
 - `Architecture.md`: arsitektur, aliran state, persistence, dan test.
 - `docs/AI_USAGE.md`: prompt AI dan catatan review manual.
+- `docs/VERIFICATION.md`: hasil pemeriksaan dan kendala runtime pada host saat ini.
 
 Backend belum dipanggil otomatis oleh vertical feature lokal ini. Perintah backend lama tetap tersedia melalui root `package.json`.
