@@ -2,9 +2,15 @@
 
 ## Tujuan dan prototype
 
-Aku Motor membantu pemilik sepeda motor mencatat kendaraan dan memantau perawatan. Frontend React/Vite dimigrasikan ke Flutter agar satu codebase berjalan di Android dan Web. Backend Express/Prisma tetap tersedia untuk sinkronisasi berikutnya, tetapi vertical feature saat ini berjalan offline-first dari UI hingga local storage.
-
-Alur MVP: Dashboard menampilkan ringkasan → pengguna membuka **Motor saya** → halaman menampilkan loading/data/empty/error → pengguna melakukan CRUD melalui form tervalidasi → submit dikunci selama penyimpanan → perubahan tersimpan setelah restart atau refresh.
+Aku Motor dirancang untuk membantu pemilik sepeda motor:
+1. **Mencatat motor yang dimiliki** beserta jarak tempuh (kilometer) saat ini.
+2. **Mencatat kapan terakhir servis atau ganti komponen** (oli mesin, oli gardan, ban, kampas rem, v-belt, roller CVT, aki, filter udara).
+3. **Membuat pengingat (reminder) otomatis** ke depannya berdasarkan interval kilometer dan waktu pemakaian.
+4. **Mengedukasi pengguna tentang komponen yang rawan rusak** dan butuh perhatian lebih.
+5. **Mengedukasi akibat keterlambatan servis ("Part ini kalo gak diganti bakal apa?")**:
+   - Menampilkan 3 tingkatan akibat nyata (Ringan, Sedang, Fatal).
+   - Menampilkan perbandingan biaya nyata: biaya ganti sekarang vs biaya turun mesin/perbaikan jika merembet.
+   - **Tanpa fitur gejala / tanpa diagnosa teknis**: Aplikasi berfokus memberi tahu *akibat* dan konsekuensi kelalaian, bukan mendiagnosa penyebab atau gejala.
 
 ## Struktur proyek
 
@@ -16,7 +22,9 @@ apps/web/
 │   ├── core/theme/
 │   ├── features/
 │   │   ├── dashboard/{application,presentation}/
-│   │   └── motors/{application,data,domain,presentation}/
+│   │   ├── maintenance/{application,data,domain,presentation}/
+│   │   ├── motors/{application,data,domain,presentation}/
+│   │   └── bookings/{application,data,domain,presentation}/
 │   └── shared/widgets/
 ├── test/{features,support}/
 ├── pubspec.yaml
@@ -51,7 +59,7 @@ SharedPreferencesMotorRepository
 
 ## State management
 
-Riverpod digunakan konsisten pada dua fitur.
+Riverpod digunakan secara konsisten pada seluruh fitur aplikasi dengan pola `AsyncNotifier` dan `Provider`.
 
 ### Feature 1 — Manajemen Motor
 
@@ -59,35 +67,54 @@ Riverpod digunakan konsisten pada dua fitur.
 
 | Kondisi | Representasi | UI |
 |---|---|---|
-| Initial loading | `AsyncLoading` | indikator loading |
-| Berhasil, ada data | `AsyncData<List<Motor>>` | daftar card motor |
-| Berhasil, kosong | `AsyncData([])` | empty state dan CTA |
-| Error | `AsyncError` | pesan dan tombol **Coba lagi** |
-| Form tidak valid | validator `Form` | pesan per field |
-| Sedang submit | `_isSubmitting == true` | spinner dan tombol disabled |
+| Initial loading | `AsyncLoading` | Indikator loading (`initialLoading`) |
+| Berhasil, ada data | `AsyncData<List<Motor>>` | Daftar card motor (`motorList`) |
+| Berhasil, kosong | `AsyncData([])` | Empty state dan tombol CTA |
+| Error | `AsyncError` | Pesan dan tombol **Coba lagi** |
+| Form tidak valid | validator `Form` | Pesan validasi per field |
+| Sedang submit | `_isSubmitting == true` | Spinner dan tombol disabled (anti double tap) |
 
 Create, update, dan delete berada pada notifier. Guard `_isSubmitting` serta `onPressed: null` mencegah double tap.
 
-### Feature 2 — Dashboard
+### Feature 2 — Pengingat Servis & Edukasi Akibat Komponen
 
-`dashboardSummaryProvider` mengamati `motorListProvider` dan membentuk `DashboardSummary`. Perubahan CRUD otomatis merambat ke jumlah motor, total kilometer, dan kendaraan terbaru tanpa pemanggilan storage kedua.
+`maintenanceListProvider` adalah `AsyncNotifierProvider<MaintenanceListNotifier, List<MaintenanceRecord>>`.
+
+Fitur ini menjawab tujuan inti Aku Motor: mencatat kapan terakhir ganti oli, ban, rem, v-belt, dll., menghitung sisa jarak tempuh dan estimasi hari untuk pengingat masa depan, serta memberikan edukasi **akibat jika tidak diganti** (tanpa fitur diagnosa gejala teknis).
+
+| Kondisi | Representasi | UI |
+|---|---|---|
+| Initial loading | `AsyncLoading` | Indikator loading (`initialLoading`) |
+| Berhasil, ada data | `AsyncData<List<MaintenanceRecord>>` | Daftar kartu status part dengan badge Aman/Perhatian/Ganti Segera, sisa km, sisa hari, dan tombol edukasi akibat |
+| Berhasil, kosong | `AsyncData([])` | Empty state panduan dan CTA catat servis pertama |
+| Error | `AsyncError` | Pesan error dan tombol **Coba lagi** (retry) |
+| Form tidak valid | validator `Form` | Validasi input kilometer angka valid dan tanggal ganti |
+| Sedang submit | `_isSubmitting == true` | Tombol submit dinonaktifkan dan spinner aktif (anti double tap) |
+
+Dialog **Edukasi Akibat ("Kalo gak diganti bakal apa?")** menampilkan:
+1. Alasan komponen tersebut rawan aus.
+2. 3 Level akibat nyata: Ringan, Sedang, Fatal.
+3. Perbandingan biaya: Ganti tepat waktu vs Biaya turun mesin/perbaikan fatal.
+
+### Feature 3 — Dashboard & Navigasi
+
+`dashboardSummaryProvider` mengamati data motor dan mengintegrasikan aksi cepat ke **Pengingat servis**, **Kelola motor**, dan **Booking servis**.
 
 ## Local data dan persistence
 
-Model lokal `Motor` berisi UUID, merek, model, tahun, kilometer, dan waktu dibuat. `SharedPreferencesMotorRepository` menyimpan JSON array dengan key berversi `aku_motor.motors.v1`.
-
-- Create: membuat UUID dan menyimpan model baru.
-- Read: membaca JSON dan mapping ke `Motor`.
-- Update: mengganti data berdasarkan ID.
-- Delete: menghapus data berdasarkan ID.
-- Persistence: repository/session baru membaca key yang sama. Web memakai storage browser; Android memakai penyimpanan aplikasi native.
+Model lokal disimpan dalam format JSON array terpisah pada SharedPreferences:
+- `aku_motor.motors.v1`: untuk data motor
+- `aku_motor.maintenance.v1`: untuk catatan penggantian part & pengingat
+- `aku_motor.bookings.v1`: untuk data booking servis
 
 ## Routing dan reusable widget
 
 - `/` → `DashboardScreen`
 - `/motors` → `MotorListScreen`
-- `EmptyState` dipakai untuk kondisi data kosong.
-- `ErrorState` memuat pesan dan callback retry.
+- `/maintenance` → `MaintenanceListScreen`
+- `/bookings` → `BookingListScreen`
+- `EmptyState` dipakai untuk kondisi data kosong (mendukung kustomisasi ikon).
+- `ErrorState` memuat pesan error dan callback retry.
 - Tema terpusat pada `AppTheme`.
 
 ## Strategi test

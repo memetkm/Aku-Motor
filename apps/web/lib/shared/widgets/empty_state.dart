@@ -6,6 +6,7 @@ class EmptyState extends StatelessWidget {
     required this.message,
     required this.actionLabel,
     required this.onAction,
+    this.icon = Icons.two_wheeler,
     super.key,
   });
 
@@ -13,6 +14,7 @@ class EmptyState extends StatelessWidget {
   final String message;
   final String actionLabel;
   final VoidCallback onAction;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +24,7 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.two_wheeler, size: 72, color: Theme.of(context).colorScheme.primary),
+            Icon(icon, size: 72, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 20),
             Text(title, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),

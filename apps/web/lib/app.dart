@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/bookings/presentation/booking_list_screen.dart';
 import 'features/dashboard/presentation/dashboard_screen.dart';
+import 'features/maintenance/presentation/maintenance_list_screen.dart';
 import 'features/motors/presentation/motor_list_screen.dart';
 
 class AkuMotorApp extends StatelessWidget {
@@ -17,6 +19,8 @@ class AkuMotorApp extends StatelessWidget {
       routes: {
         DashboardScreen.routeName: (_) => const DashboardScreen(),
         MotorListScreen.routeName: (_) => const MotorListScreen(),
+        BookingListScreen.routeName: (_) => const BookingListScreen(),
+        MaintenanceListScreen.routeName: (_) => const MaintenanceListScreen(),
       },
     );
   }

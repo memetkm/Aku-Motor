@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/widgets/error_state.dart';
+import '../../bookings/presentation/booking_list_screen.dart';
+import '../../maintenance/presentation/maintenance_list_screen.dart';
 import '../../motors/application/motor_providers.dart';
 import '../../motors/presentation/motor_list_screen.dart';
 import '../application/dashboard_providers.dart';
@@ -60,10 +62,31 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: () => Navigator.pushNamed(context, MotorListScreen.routeName),
-              icon: const Icon(Icons.garage_outlined),
-              label: const Text('Kelola motor'),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                FilledButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, MotorListScreen.routeName),
+                  icon: const Icon(Icons.garage_outlined),
+                  label: const Text('Kelola motor'),
+                ),
+                FilledButton.tonalIcon(
+                  key: const Key('maintenanceButton'),
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    MaintenanceListScreen.routeName,
+                  ),
+                  icon: const Icon(Icons.build_circle_outlined),
+                  label: const Text('Pengingat servis'),
+                ),
+                FilledButton.tonalIcon(
+                  key: const Key('manageBookingsButton'),
+                  onPressed: () => Navigator.pushNamed(context, BookingListScreen.routeName),
+                  icon: const Icon(Icons.calendar_month_outlined),
+                  label: const Text('Booking servis'),
+                ),
+              ],
             ),
           ],
         ),
