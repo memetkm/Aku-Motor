@@ -1,0 +1,41 @@
+import 'package:flutter/material.dart';
+
+class EmptyState extends StatelessWidget {
+  const EmptyState({
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+    super.key,
+  });
+
+  final String title;
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.two_wheeler, size: 72, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 20),
+            Text(title, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(message, textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: onAction,
+              icon: const Icon(Icons.add),
+              label: Text(actionLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

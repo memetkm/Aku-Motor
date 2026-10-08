@@ -1,291 +1,100 @@
-Build a simple full-stack web application named **Aku Motor**.
+# Arsitektur Aku Motor — Flutter
 
-Purpose:
-Help motorcycle owners track when parts must be replaced and understand what happens if those parts are ignored. The application stores motorcycle data, part status, service history, usage profiles, and educational content, then shows reminders plus part status on a dashboard.
+## Tujuan dan prototype
 
-Use this stack:
+Aku Motor membantu pemilik sepeda motor mencatat kendaraan dan memantau perawatan. Frontend React/Vite dimigrasikan ke Flutter agar satu codebase berjalan di Android dan Web. Backend Express/Prisma tetap tersedia untuk sinkronisasi berikutnya, tetapi vertical feature saat ini berjalan offline-first dari UI hingga local storage.
 
-- Frontend: React + TypeScript + Vite + Tailwind CSS
-- Backend: Node.js + TypeScript + Express
-- Database: MySQL
-- ORM: Prisma
-- API style: REST API
-- Use Docker Compose for MySQL
-- Use `.env.example` for the database URL
+Alur MVP: Dashboard menampilkan ringkasan → pengguna membuka **Motor saya** → halaman menampilkan loading/data/empty/error → pengguna melakukan CRUD melalui form tervalidasi → submit dikunci selama penyimpanan → perubahan tersimpan setelah restart atau refresh.
 
-Code rules:
-
-- Do not add comments unless truly necessary.
-- Use PascalCase for all classes, types, interfaces, enums, React components, database models, API DTOs, and JSON property names.
-- Local variables may use camelCase.
-- Keep code lines below 150 characters where practical.
-- Use a clean and simple folder structure.
-- Do not add authentication in this first version. Assume one owner uses the application.
-
-Main entities:
-
-1. Motor
-
-   * Id
-   * Brand
-   * Model
-   * Year
-   * CurrentKilometer
-   * CreatedAt
-   * UpdatedAt
-
-2. Part
-
-   * Id
-   * MotorId
-   * PartType
-   * LastReplacedAt
-   * LastReplacedKilometer
-   * IntervalKilometer
-   * IntervalMonth
-   * Status
-   * CreatedAt
-   * UpdatedAt
-
-3. ServiceHistory
-
-   * Id
-   * MotorId
-   * PartId
-   * PartType
-   * ReplacedAt
-   * ReplacedKilometer
-   * Cost
-   * Notes
-   * CreatedAt
-
-4. UsageProfile
-
-   * Id
-   * MotorId
-   * KilometerPerDay
-   * Terrain
-   * DrivingStyle
-   * OftenPassenger
-   * OftenRain
-   * CreatedAt
-   * UpdatedAt
-
-5. PartEducation
-
-   * Id
-   * PartType
-   * MotorBrand
-   * MotorModel
-   * ConsequenceLight
-   * ConsequenceMedium
-   * ConsequenceFatal
-   * CostNow
-   * CostLater
-   * CreatedAt
-
-Database rules:
-
-* A ServiceHistory must be unique by `MotorId`, `PartId`, and `ReplacedAt`.
-* Never delete existing service history data.
-* Never replace existing service history records.
-* When a new service history is inserted, update the related Part with the new `LastReplacedAt`, `LastReplacedKilometer`, and `Status`.
-* Update `UpdatedAt` on Motor whenever Part, ServiceHistory, or UsageProfile data changes.
-* Use Prisma migrations and seed one example motor, five parts, three service histories, one usage profile, and five part education entries.
-
-Backend features:
-
-1. CRUD Motor
-
-   * Create, list, detail, update, delete motor.
-
-2. CRUD Part
-
-   * Create, list, detail, update, delete part inside a motor.
-   * Compute `Status` automatically from `LastReplacedKilometer`, `CurrentKilometer`, `IntervalKilometer`, `LastReplacedAt`, `IntervalMonth`, and the related UsageProfile.
-
-3. CRUD Service History
-
-   * Record part replacement history.
-   * After creation, update the related Part status.
-
-4. Usage Profile
-
-   * Store how the motorcycle is used: kilometer per day, terrain, driving style, often carrying a passenger, often riding in rain.
-
-5. Reminder and Status API
-
-   * Endpoint to fetch the status of all parts in a motor.
-   * Recompute status whenever data changes.
-   * Return a result containing:
-
-     * PartId
-     * PartType
-     * Status
-     * RemainingKilometer
-     * RemainingDays
-     * ConsequenceSummary
-     * CostNow
-     * CostLater
-     * Message
-
-6. Education API
-
-   * Endpoint to fetch educational content per `PartType` and motor model.
-   * Fall back to generic content when the motor model is not found.
-
-7. Dashboard API
-
-   * Return a motor summary:
-
-     * TotalParts
-     * SafeParts
-     * WarningParts
-     * UrgentParts
-     * TotalServiceHistory
-     * LastServiceAt
-   * Return the list of part statuses:
-
-     * PartId
-     * PartType
-     * Status
-     * RemainingKilometer
-     * RemainingDays
-     * ConsequenceSummary
-   * Status rules:
-
-     * `SAFE`: remaining kilometer and remaining days are still far
-     * `WARNING`: remaining kilometer or remaining days is close to the limit
-     * `URGENT`: remaining kilometer or remaining days has passed or is very close
-
-Frontend pages:
-
-1. Dashboard
-
-   * Motor selector.
-   * Summary cards: total parts, safe parts, warning parts, urgent parts, total service history, last service date.
-   * Table showing each part: part name, status, remaining kilometer, remaining days, short consequence.
-   * Button: `Lihat Detail` on each part.
-   * Dashboard reads only from the MySQL database when opened. It must not call any external API automatically.
-
-2. Motor Management
-
-   * List motors.
-   * Form to create and edit motors (brand, model, year, current kilometer).
-   * Button to open the motor dashboard.
-
-3. Part Management
-
-   * List parts in the selected motor.
-   * Form to add and edit parts (type, last replaced date, last replaced kilometer, interval kilometer, interval month).
-   * Show part status with a colored badge.
-
-4. Service History Management
-
-   * List service history per motor.
-   * Form to add service history (part, date, kilometer, cost, notes).
-   * After saving, the related part status is updated automatically.
-
-5. Usage Profile
-
-   * Form to edit usage: kilometer per day, terrain, driving style, often carrying a passenger, often riding in rain.
-   * Changes affect part status computation.
-
-6. Part Education Detail
-
-   * Show part information.
-   * Show consequences if ignored in three levels: light, medium, fatal.
-   * Show cost now versus cost later.
-   * Button: `Sudah Diganti` to open the service history form.
-
-UI requirements:
-
-* Use Indonesian language for all labels, buttons, messages, and validation.
-* Create a clean, responsive owner dashboard.
-* Use simple tables, cards, badges, forms, confirmation dialog before delete, and empty states.
-* Use status badge colors:
-
-  * Safe: green
-  * Warning: orange
-  * Urgent: red
-* Do not add charts in the first version.
-
-Required API routes:
-
-* `GET /api/motors`
-* `POST /api/motors`
-* `GET /api/motors/:Id`
-* `PUT /api/motors/:Id`
-* `DELETE /api/motors/:Id`
-* `GET /api/motors/:MotorId/parts`
-* `POST /api/motors/:MotorId/parts`
-* `PUT /api/parts/:Id`
-* `DELETE /api/parts/:Id`
-* `GET /api/motors/:MotorId/service-history`
-* `POST /api/motors/:MotorId/service-history`
-* `GET /api/motors/:MotorId/usage-profile`
-* `PUT /api/motors/:MotorId/usage-profile`
-* `GET /api/motors/:MotorId/dashboard`
-* `GET /api/parts/:Id/education`
-* `GET /api/part-education`
-
-Deliverables:
-
-* Complete frontend and backend source code.
-* Prisma schema, migration, and seed data.
-* Docker Compose file for MySQL.
-* `.env.example`.
-* README with installation, database migration, seed, frontend/backend startup, Docker usage, and environment configuration.
-* Ensure the application builds successfully and all basic CRUD plus part status computation work.
-
-Project structure:
-
-* Use a TypeScript monorepo with npm workspaces.
-* Structure:
+## Struktur proyek
 
 ```text
-aku-motor/
-  apps/
-    web/
-    api/
-  packages/
-    shared/
+apps/web/
+├── lib/
+│   ├── main.dart
+│   ├── app.dart
+│   ├── core/theme/
+│   ├── features/
+│   │   ├── dashboard/{application,presentation}/
+│   │   └── motors/{application,data,domain,presentation}/
+│   └── shared/widgets/
+├── test/{features,support}/
+├── pubspec.yaml
+└── analysis_options.yaml
 ```
 
-Shared package requirements:
+Struktur berbasis feature membuat domain, state, persistence, dan UI sebuah fitur dapat dilacak secara vertikal.
 
-* Create `packages/shared` as `@aku-motor/shared`.
-* Store all shared domain models, enums, API response types, and shared constants here.
-* Both `apps/web` and `apps/api` must import shared types from this package.
-* Do not duplicate domain model definitions between frontend and backend.
-
-Example shared files:
+## Aliran data vertical feature Motor
 
 ```text
-packages/shared/src/
-  models/
-    Motor.ts
-    Part.ts
-    ServiceHistory.ts
-    UsageProfile.ts
-    PartEducation.ts
-  enums/
-    PartType.ts
-    PartStatus.ts
-    Terrain.ts
-    DrivingStyle.ts
-  dto/
-    MotorDashboardResponse.ts
-    PartStatusResponse.ts
-    EducationResponse.ts
-  index.ts
+MotorListScreen / MotorFormDialog
+              │ watch / command
+              ▼
+       MotorListNotifier (Riverpod)
+              │ CRUD
+              ▼
+       MotorRepository (kontrak)
+              │ implementasi
+              ▼
+SharedPreferencesMotorRepository
+              │ JSON
+              ▼
+ shared_preferences device/browser
 ```
 
-Model rules:
+- Presentation merender state, menerima input, dan menampilkan validasi.
+- Application mengatur lifecycle async dan operasi CRUD.
+- Domain mendefinisikan `Motor`, `MotorDraft`, dan kontrak repository.
+- Data melakukan serialisasi JSON dan persistence.
+- UI tidak mengetahui detail storage, sehingga repository dapat diganti SQLite/Isar/API.
 
-* Define shared TypeScript interfaces or types only once in `packages/shared`.
-* Example: `Motor`, `Part`, `ServiceHistory`, `PartType`, and `PartStatus` must be imported by both frontend and backend from `@aku-motor/shared`.
-* Prisma models remain in the backend because they are database-specific.
-* The backend maps Prisma entities to shared API models before returning responses.
-* The frontend must not import Prisma types.
-* Configure TypeScript paths, workspace dependencies, build scripts, and development scripts correctly so all packages compile successfully.
+## State management
+
+Riverpod digunakan konsisten pada dua fitur.
+
+### Feature 1 — Manajemen Motor
+
+`motorListProvider` adalah `AsyncNotifierProvider<MotorListNotifier, List<Motor>>`.
+
+| Kondisi | Representasi | UI |
+|---|---|---|
+| Initial loading | `AsyncLoading` | indikator loading |
+| Berhasil, ada data | `AsyncData<List<Motor>>` | daftar card motor |
+| Berhasil, kosong | `AsyncData([])` | empty state dan CTA |
+| Error | `AsyncError` | pesan dan tombol **Coba lagi** |
+| Form tidak valid | validator `Form` | pesan per field |
+| Sedang submit | `_isSubmitting == true` | spinner dan tombol disabled |
+
+Create, update, dan delete berada pada notifier. Guard `_isSubmitting` serta `onPressed: null` mencegah double tap.
+
+### Feature 2 — Dashboard
+
+`dashboardSummaryProvider` mengamati `motorListProvider` dan membentuk `DashboardSummary`. Perubahan CRUD otomatis merambat ke jumlah motor, total kilometer, dan kendaraan terbaru tanpa pemanggilan storage kedua.
+
+## Local data dan persistence
+
+Model lokal `Motor` berisi UUID, merek, model, tahun, kilometer, dan waktu dibuat. `SharedPreferencesMotorRepository` menyimpan JSON array dengan key berversi `aku_motor.motors.v1`.
+
+- Create: membuat UUID dan menyimpan model baru.
+- Read: membaca JSON dan mapping ke `Motor`.
+- Update: mengganti data berdasarkan ID.
+- Delete: menghapus data berdasarkan ID.
+- Persistence: repository/session baru membaca key yang sama. Web memakai storage browser; Android memakai penyimpanan aplikasi native.
+
+## Routing dan reusable widget
+
+- `/` → `DashboardScreen`
+- `/motors` → `MotorListScreen`
+- `EmptyState` dipakai untuk kondisi data kosong.
+- `ErrorState` memuat pesan dan callback retry.
+- Tema terpusat pada `AppTheme`.
+
+## Strategi test
+
+- Widget test: loading, success, empty, error+retry, validasi, dan submit loading/no double tap.
+- Widget test dashboard: ringkasan berasal dari state motor.
+- Repository test: create, reopen/read, update, dan delete dengan mock storage.
+- Repository di-inject melalui provider override agar test tidak bergantung pada platform.
+
+Fitur Part, Riwayat Servis, Profil Penggunaan, dan Edukasi selanjutnya mengikuti pola vertikal yang sama. Saat sinkronisasi server dipakai, implementasi repository dapat menggabungkan database lokal dengan REST API yang sudah ada.

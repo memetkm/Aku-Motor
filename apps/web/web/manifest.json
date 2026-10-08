@@ -1,0 +1,11 @@
+{
+  "name": "Aku Motor",
+  "short_name": "Aku Motor",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F6F8FC",
+  "theme_color": "#155EEF",
+  "description": "Catatan kendaraan dan perawatan motor offline-first.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}

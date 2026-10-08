@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Motor {
+  Id               Int              @id @default(autoincrement())
+  Brand            String
+  Model            String
+  Year             Int
+  CurrentKilometer Int
+  CreatedAt        DateTime         @default(now())
+  UpdatedAt        DateTime         @updatedAt
+  Parts            Part[]
+  ServiceHistories ServiceHistory[]
+  UsageProfile     UsageProfile?
+}
+
+model Part {
+  Id                    Int              @id @default(autoincrement())
+  MotorId               Int
+  PartType              String
+  LastReplacedAt        DateTime
+  LastReplacedKilometer Int
+  IntervalKilometer     Int
+  IntervalMonth         Int
+  Status                String           @default("AMAN")
+  CreatedAt             DateTime         @default(now())
+  UpdatedAt             DateTime         @updatedAt
+  Motor                 Motor            @relation(fields: [MotorId], references: [Id], onDelete: Cascade)
+  ServiceHistories      ServiceHistory[]
+
+  @@unique([MotorId, PartType])
+}
+
+model ServiceHistory {
+  Id                Int      @id @default(autoincrement())
+  MotorId           Int
+  PartId            Int
+  PartType          String
+  ReplacedAt        DateTime
+  ReplacedKilometer Int
+  Cost              Int
+  Notes             String?  @db.Text
+  CreatedAt         DateTime @default(now())
+  Motor             Motor    @relation(fields: [MotorId], references: [Id], onDelete: Restrict)
+  Part              Part     @relation(fields: [PartId], references: [Id], onDelete: Restrict)
+
+  @@unique([MotorId, PartId, ReplacedAt])
+}
+
+model UsageProfile {
+  Id               Int      @id @default(autoincrement())
+  MotorId          Int      @unique
+  KilometerPerDay  Int
+  Terrain          String
+  DrivingStyle     String
+  OftenPassenger   Boolean  @default(false)
+  OftenRain        Boolean  @default(false)
+  CreatedAt        DateTime @default(now())
+  UpdatedAt        DateTime @updatedAt
+  Motor            Motor    @relation(fields: [MotorId], references: [Id], onDelete: Cascade)
+}
+
+model PartEducation {
+  Id                 Int      @id @default(autoincrement())
+  PartType           String
+  MotorBrand         String?
+  MotorModel         String?
+  ConsequenceLight   String   @db.Text
+  ConsequenceMedium  String   @db.Text
+  ConsequenceFatal   String   @db.Text
+  CostNow            Int
+  CostLater          Int
+  CreatedAt          DateTime @default(now())
+
+  @@index([PartType, MotorBrand, MotorModel])
+}

@@ -5,3 +5,11 @@ dist
 *.log
 .DS_Store
 apps/api/prisma/migrations/dev.db*
+
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+build/
+apps/web/android/.gradle/
+apps/web/android/local.properties
