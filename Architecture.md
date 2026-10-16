@@ -33,29 +33,34 @@ apps/web/
 
 Struktur berbasis feature membuat domain, state, persistence, dan UI sebuah fitur dapat dilacak secara vertikal.
 
-## Aliran data vertical feature Motor
+## Aliran data vertical slice feature Motor (API & Local Data)
+
+Fitur inti Manajemen Motor mengimplementasikan Repository Pattern yang memisahkan UI dan State Management dari implementasi data, sehingga aplikasi dapat berjalan baik secara lokal (*offline-first*) maupun terhubung ke Backend REST API:
 
 ```text
-MotorListScreen / MotorFormDialog
+MotorListScreen / MotorFormDialog (UI / Presentation)
               │ watch / command
               ▼
-       MotorListNotifier (Riverpod)
-              │ CRUD
+       MotorListNotifier (Riverpod Application)
+              │ CRUD async
               ▼
-       MotorRepository (kontrak)
-              │ implementasi
-              ▼
-SharedPreferencesMotorRepository
-              │ JSON
-              ▼
- shared_preferences device/browser
+       MotorRepository (Domain Interface)
+              │
+      ┌───────┴────────────────────────┐
+      ▼                                ▼
+ApiMotorRepository      SharedPreferencesMotorRepository
+      │ HTTP REST                      │ JSON Serialization
+      ▼                                ▼
+Backend Express/Prisma         localStorage / Device disk
+(GET/POST/PUT/DELETE)
 ```
 
-- Presentation merender state, menerima input, dan menampilkan validasi.
-- Application mengatur lifecycle async dan operasi CRUD.
-- Domain mendefinisikan `Motor`, `MotorDraft`, dan kontrak repository.
-- Data melakukan serialisasi JSON dan persistence.
-- UI tidak mengetahui detail storage, sehingga repository dapat diganti SQLite/Isar/API.
+### Penanganan 5 State UI pada Integrasi API:
+1. **Loading**: Saat request async HTTP sedang berlangsung, UI menampilkan indikator loading (`CircularProgressIndicator`).
+2. **Empty**: Saat backend mengembalikan response HTTP 200 dengan array kosong `[]`, UI menampilkan `EmptyState` ("Belum ada motor") dengan CTA.
+3. **Error**: Saat request HTTP gagal (misal status 500, 404, atau jaringan putus), UI menangkap `ApiException` dan menampilkan `ErrorState` beserta detail pesan kegagalan.
+4. **Success**: Saat data berhasil diterima dari backend, data di-parse ke `List<Motor>` dan di-render dalam `ListView`.
+5. **Retry**: Pengguna dapat menekan tombol **Coba lagi** pada error state yang memanggil `ref.read(motorListProvider.notifier).reload()` untuk mengulang request ke backend.
 
 ## State management
 

@@ -41,13 +41,54 @@ class Motor {
       };
 
   factory Motor.fromJson(Map<String, dynamic> json) {
+    final id = json['Id'] ?? json['id'];
+    final brand = json['Brand'] ?? json['brand'];
+    final model = json['Model'] ?? json['model'];
+    final year = json['Year'] ?? json['year'];
+    final currentKilometer = json['CurrentKilometer'] ?? json['currentKilometer'];
+    final createdAtRaw = json['CreatedAt'] ?? json['createdAt'];
+
+    if (id == null || brand == null || model == null || year == null || currentKilometer == null) {
+      throw const FormatException('Data motor tidak valid: atribut wajib tidak lengkap.');
+    }
+
+    if (brand is! String || brand.trim().isEmpty) {
+      throw const FormatException('Data motor tidak valid: Brand harus berupa string.');
+    }
+    if (model is! String || model.trim().isEmpty) {
+      throw const FormatException('Data motor tidak valid: Model harus berupa string.');
+    }
+
+    final parsedYear = year is int ? year : int.tryParse(year.toString());
+    if (parsedYear == null) {
+      throw const FormatException('Data motor tidak valid: Year harus berupa angka.');
+    }
+
+    final parsedKm = currentKilometer is int
+        ? currentKilometer
+        : int.tryParse(currentKilometer.toString());
+    if (parsedKm == null) {
+      throw const FormatException('Data motor tidak valid: CurrentKilometer harus berupa angka.');
+    }
+
+    DateTime parsedCreatedAt;
+    if (createdAtRaw != null) {
+      final parsed = DateTime.tryParse(createdAtRaw.toString());
+      if (parsed == null) {
+        throw const FormatException('Data motor tidak valid: Format tanggal CreatedAt salah.');
+      }
+      parsedCreatedAt = parsed;
+    } else {
+      parsedCreatedAt = DateTime.now();
+    }
+
     return Motor(
-      id: json['Id'] as String,
-      brand: json['Brand'] as String,
-      model: json['Model'] as String,
-      year: json['Year'] as int,
-      currentKilometer: json['CurrentKilometer'] as int,
-      createdAt: DateTime.parse(json['CreatedAt'] as String),
+      id: id.toString(),
+      brand: brand,
+      model: model,
+      year: parsedYear,
+      currentKilometer: parsedKm,
+      createdAt: parsedCreatedAt,
     );
   }
 }
@@ -64,4 +105,11 @@ class MotorDraft {
   final String model;
   final int year;
   final int currentKilometer;
+
+  Map<String, dynamic> toJson() => {
+        'Brand': brand,
+        'Model': model,
+        'Year': year,
+        'CurrentKilometer': currentKilometer,
+      };
 }

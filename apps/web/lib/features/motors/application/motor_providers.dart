@@ -1,9 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/network/api_client.dart';
+import '../data/api_motor_repository.dart';
 import '../data/shared_preferences_motor_repository.dart';
 import '../domain/motor.dart';
 import '../domain/motor_repository.dart';
+
+final apiClientProvider = Provider<ApiClient>((ref) => StandardApiClient());
+
+final apiMotorRepositoryProvider = Provider<MotorRepository>(
+  (ref) => ApiMotorRepository(ref.watch(apiClientProvider)),
+);
 
 final sharedPreferencesProvider = Provider<SharedPreferences>(
   (ref) => throw UnimplementedError('SharedPreferences belum diinisialisasi.'),
