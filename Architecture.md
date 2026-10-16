@@ -102,10 +102,37 @@ Dialog **Edukasi Akibat ("Kalo gak diganti bakal apa?")** menampilkan:
 
 ## Local data dan persistence
 
-Model lokal disimpan dalam format JSON array terpisah pada SharedPreferences:
-- `aku_motor.motors.v1`: untuk data motor
-- `aku_motor.maintenance.v1`: untuk catatan penggantian part & pengingat
-- `aku_motor.bookings.v1`: untuk data booking servis
+Aplikasi mengimplementasikan penyimpanan lokal offline-first menggunakan `shared_preferences` yang berjalan di Android (native SharedPreferences) maupun Web (browser localStorage).
+
+### 1. Data Model & Serialisasi
+Data disimpan dalam bentuk JSON array berversi untuk memastikan integritas skema data:
+- `aku_motor.motors.v1`: untuk data entitas `Motor` (`id`, `brand`, `model`, `year`, `currentKilometer`, `createdAt`).
+- `aku_motor.maintenance.v1`: untuk catatan entitas `MaintenanceRecord` (`id`, `motorId`, `partType`, `lastReplacedAt`, `lastReplacedKilometer`, `notes`, `createdAt`).
+- `aku_motor.bookings.v1`: untuk entitas `Booking`.
+
+Setiap model memiliki metode:
+- `toJson()`: Serialisasi objek Dart menjadi format `Map<String, dynamic>` sebelum dienkode ke JSON string.
+- `fromJson()`: Deserialisasi string JSON kembali menjadi objek Dart yang *type-safe* dan *immutable*.
+
+### 2. Implementasi CRUD Vertikal (FE ➔ State Notifier ➔ Repository ➔ Local Storage)
+
+| Operasi | Alur UI / Notifier | Mekanisme di Repository | Penyimpanan Lokal (`shared_preferences`) |
+|---|---|---|---|
+| **Create** | Form modal input data ➔ `notifier.create(draft)` | `_uuid.v4()` digenerate, data baru ditambahkan ke list | List dienkode ke JSON dan disimpan via `_preferences.setString(key, encoded)` |
+| **Read** | `ref.watch(provider)` saat layar dibuka | `getAll()` membaca string dari storage dan mendeserialisasi | `_preferences.getString(key)` dibaca langsung dari storage lokal |
+| **Update** | Form edit data ➔ `notifier.update(id, draft)` | Mencari elemen berdasarkan ID, memperbarui field (`copyWith`) | Array yang diperbarui disimpan ulang ke storage lokal |
+| **Delete** | Dialog konfirmasi hapus ➔ `notifier.delete(id)` | Menghapus elemen bersangkutan dari list (`removeWhere`) | Array tanpa item tersebut disimpan ulang ke storage lokal |
+
+### 3. Pengujian Persistence (Persistence Test)
+
+Dua level pengujian persistensi telah diimplementasikan:
+1. **Repository-Level Persistence Test** ([`shared_preferences_motor_repository_test.dart`](test/features/motors/data/shared_preferences_motor_repository_test.dart)):
+   - Menjalankan sesi repository pertama untuk membuat data.
+   - Menginisialisasi sesi baru (`reopenedSession`) dan memverifikasi data yang sama langsung terbaca dari storage.
+   - Melakukan update dan delete, lalu memverifikasi session baru membaca perubahan yang persisten.
+2. **End-to-End Vertical Persistence Test** ([`motor_vertical_persistence_test.dart`](test/features/motors/motor_vertical_persistence_test.dart)):
+   - Menguji alur lengkap dari UI Flutter (Form dialog) hingga SharedPreferences.
+   - Mensimulasikan **penutupan aplikasi / restart session** (pemberian `ProviderScope` baru) dan membuktikan data motor tetap muncul di layar tanpa hilang.
 
 ## Routing dan reusable widget
 
@@ -119,9 +146,8 @@ Model lokal disimpan dalam format JSON array terpisah pada SharedPreferences:
 
 ## Strategi test
 
-- Widget test: loading, success, empty, error+retry, validasi, dan submit loading/no double tap.
-- Widget test dashboard: ringkasan berasal dari state motor.
-- Repository test: create, reopen/read, update, dan delete dengan mock storage.
-- Repository di-inject melalui provider override agar test tidak bergantung pada platform.
+- **Widget test**: loading, success, empty, error+retry, validasi, dan submit loading/no double tap.
+- **Vertical Persistence test**: CRUD lengkap dari UI hingga storage dengan simulasi app restart.
+- **Repository test**: create, reopen/read, update, dan delete dengan mock storage.
 
 Fitur Part, Riwayat Servis, Profil Penggunaan, dan Edukasi selanjutnya mengikuti pola vertikal yang sama. Saat sinkronisasi server dipakai, implementasi repository dapat menggabungkan database lokal dengan REST API yang sudah ada.
