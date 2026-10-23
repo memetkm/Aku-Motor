@@ -31,7 +31,7 @@ class MaintenanceListNotifier extends AsyncNotifier<List<MaintenanceRecord>> {
         () => _repository.create(draft),
       );
 
-  Future<bool> update(String id, MaintenanceDraft draft) => _mutate(
+  Future<bool> updateMaintenance(String id, MaintenanceDraft draft) => _mutate(
         () => _repository.update(id, draft),
       );
 

@@ -223,7 +223,7 @@ class _BookingFormDialogState extends ConsumerState<BookingFormDialog> {
     final notifier = ref.read(bookingListProvider.notifier);
     final succeeded = widget.booking == null
         ? await notifier.create(draft)
-        : await notifier.update(widget.booking!.id, draft);
+        : await notifier.updateBooking(widget.booking!.id, draft);
 
     if (!mounted) return;
     if (succeeded) {

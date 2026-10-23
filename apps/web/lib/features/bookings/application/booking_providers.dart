@@ -29,7 +29,7 @@ class BookingListNotifier extends AsyncNotifier<List<Booking>> {
         () => _repository.create(draft),
       );
 
-  Future<bool> update(String id, BookingDraft draft) => _mutate(
+  Future<bool> updateBooking(String id, BookingDraft draft) => _mutate(
         () => _repository.update(id, draft),
       );
 
