@@ -151,6 +151,14 @@ Dua level pengujian persistensi telah diimplementasikan:
 
 ## Strategi test
 
+- **Unit test API & Domain Model (Minimal 6 Skenario Wajib)**:
+  1. `Unit Test 1 (model valid)`: Deserialisasi JSON valid menghasilkan objek `Motor` yang tepat.
+  2. `Unit Test 2 (model invalid)`: Deserialisasi JSON tanpa atribut wajib melempar `FormatException`.
+  3. `Unit Test 3 (API sukses)`: Request `GET /motors` sukses HTTP 200 mengembalikan `List<Motor>`.
+  4. `Unit Test 4 (data kosong)`: Request `GET /motors` sukses HTTP 200 dengan payload `[]` mengembalikan list kosong.
+  5. `Unit Test 5 (HTTP gagal)`: Request `GET /motors` gagal status HTTP 500 melempar `ApiException`.
+  6. `Unit Test 6 (JSON rusak)`: Request `GET /motors` HTTP 200 dengan payload malformed melempar `FormatException`.
+
 - **Widget test**: loading, success, empty, error+retry, validasi, dan submit loading/no double tap.
 - **Vertical Persistence test**: CRUD lengkap dari UI hingga storage dengan simulasi app restart.
 - **Repository test**: create, reopen/read, update, dan delete dengan mock storage.

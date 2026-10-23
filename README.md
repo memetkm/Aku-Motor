@@ -154,14 +154,19 @@ flutter test
 ```
 
 ### Cakupan Pengujian:
-1. **Unit Test Integrasi API & Model (6 Skenario Wajib)**:
-   - `test/features/motors/api_motor_repository_test.dart`
-     - Model valid (parsing JSON sukses)
-     - Model invalid (melempar `FormatException` jika field wajib hilang)
-     - API sukses (HTTP 200 mengembalikan list motor)
-     - Data kosong (HTTP 200 mengembalikan `[]`)
-     - HTTP gagal (HTTP 500 melempar `ApiException`)
-     - JSON rusak (HTTP 200 dengan body malformed melempar `FormatException`)
+1. **Unit Test Integrasi API & Model (Minimal 6 Skenario Wajib)**:
+   - Terletak pada:
+     - `test/features/motors/domain/motor_test.dart` (Unit Test Model)
+     - `test/features/motors/data/api_motor_repository_test.dart` (Unit Test Repository)
+     - `test/features/motors/api_motor_repository_test.dart` (Suite Unit Test Terpadu)
+   - 6 Skenario Unit Test Individual:
+     - `Unit Test 1 (model valid)`: Deserialisasi JSON valid dari backend sukses
+     - `Unit Test 2 (model invalid)`: JSON tidak lengkap/salah melempar `FormatException`
+     - `Unit Test 3 (API sukses)`: Endpoint HTTP 200 mengembalikan `List<Motor>`
+     - `Unit Test 4 (data kosong)`: Endpoint HTTP 200 dengan payload `[]` mengembalikan list kosong
+     - `Unit Test 5 (HTTP gagal)`: Endpoint HTTP 500 melempar `ApiException`
+     - `Unit Test 6 (JSON rusak)`: Payload HTTP 200 malformed melempar `FormatException`
+     - *(Tambahan)* `Unit Test 7` (Create/POST), `Unit Test 8` (Update/PUT), `Unit Test 9` (Delete/DELETE)
 2. **Vertical Slice & State Test**:
    - `test/features/motors/api_vertical_slice_test.dart`: Menguji transisi UI Loading, Error, Retry, Empty, dan Success yang terhubung dengan API.
 3. **Local Data Persistence Test**:
