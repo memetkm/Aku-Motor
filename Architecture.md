@@ -145,9 +145,41 @@ Dua level pengujian persistensi telah diimplementasikan:
 - `/motors` → `MotorListScreen`
 - `/maintenance` → `MaintenanceListScreen`
 - `/bookings` → `BookingListScreen`
+- `/login` → `LoginScreen` (Autentikasi Akun)
+- `/register` → `RegisterScreen` (Pendaftaran Akun Baru)
+- `/notifications` → `NotificationListScreen` (Pusat Notifikasi & Pengingat Servis)
+- `/workshops` → `NearbyWorkshopsScreen` (Integrasi Lokasi GPS Bengkel Terdekat)
 - `EmptyState` dipakai untuk kondisi data kosong (mendukung kustomisasi ikon).
 - `ErrorState` memuat pesan error dan callback retry.
 - Tema terpusat pada `AppTheme`.
+
+## Advanced Features & Penanganan Hardware / Permission
+
+Aplikasi mengintegrasikan 5 fitur tingkat lanjut (*advanced features*) dengan penanganan status lengkap:
+
+### 1. Autentikasi Pengguna & Profil (`features/auth`)
+- **Manfaat**: Melindungi data kendaraan pribadi, sinkronisasi cloud, dan mencegah pencampuran riwayat servis antarpengguna.
+- **Implementasi**: `SharedPreferencesAuthRepository` (`aku_motor.auth_session.v1` & `aku_motor.auth_users.v1`), akun demo `budi@akumotor.id`, mode tamu (guest), form login/register tervalidasi, ubah profil, dan konfirmasi logout.
+- **Kondisi**: Loading saat proses autentikasi, Error jika kredensial tidak cocok, Empty/Guest jika belum login.
+
+### 2. Notifikasi & Pengingat Servis Cerdas (`features/notifications`)
+- **Manfaat**: Peringatan dini otomatis saat komponen (oli, rem, v-belt) memasuki status *Perhatian* atau *Ganti Segera*.
+- **Implementasi**: `SharedPreferencesNotificationRepository` (`aku_motor.notifications.v1`), sinkronisasi otomatis dari catatan servis, penandaan baca (`markAsRead`), filter unread, serta simulasi pengingat servis.
+- **Penanganan Izin**: Banner interaktif menangani 3 status izin notifikasi (`notDetermined`, `granted`, `denied`) dengan opsi aktivasi ulang.
+
+### 3. Lokasi & Pencarian Bengkel Terdekat GPS (`features/locations`)
+- **Manfaat**: Menghitung jarak real-time (km) ke bengkel resmi terdekat (AHASS, Yamaha, Suzuki, Kawasaki, Umum) dan booking langsung dalam 1 klik.
+- **Implementasi**: `WorkshopLocationService` dengan rumus kalkulasi jarak Haversine, filter merek motor, status buka/tutup, dan aksi panggil bengkel.
+- **Penanganan Izin & Pembatalan**: Deteksi status GPS (`granted`, `denied`), opsi fallback lokasi pusat kota jika izin ditolak, dan tombol refresh koordinat.
+
+### 4. Kamera & Dokumentasi Foto Bukti Servis (`features/camera`)
+- **Manfaat**: Menyimpan bukti fisik nota bengkel dan foto odometer kilometer untuk menjaga riwayat servis valid dan nilai jual kembali motor.
+- **Implementasi**: `AppCameraService` terintegrasi pada form servis part, pratinjau nota via `PhotoPreviewDialog`, penyimpanan token gambar berstempel waktu.
+- **Penanganan Izin & Pembatalan**: Dialog perizinan kamera, penanganan pembatalan (*cancellation handling*) saat pengguna batal menjepret/memilih foto, serta penanganan izin kamera ditolak.
+
+### 5. Sensor Guncangan & Bantuan Darurat SOS (`features/sensor`)
+- **Manfaat**: Bantuan cepat saat motor mogok di jalan raya atau kecelakaan, menghubungkan ke derek resmi 24 jam Jasa Marga, Honda Care, dan call center darurat.
+- **Implementasi**: `EmergencySosDialog` dengan kontak darurat satu sentuhan dan simulasi sensor deteksi guncangan accelerometer.
 
 ## Strategi test
 

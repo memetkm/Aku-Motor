@@ -12,9 +12,14 @@ const List<String> kServiceTypes = [
 ];
 
 class BookingFormDialog extends ConsumerStatefulWidget {
-  const BookingFormDialog({this.booking, super.key});
+  const BookingFormDialog({
+    this.booking,
+    this.initialWorkshopName,
+    super.key,
+  });
 
   final Booking? booking;
+  final String? initialWorkshopName;
 
   @override
   ConsumerState<BookingFormDialog> createState() => _BookingFormDialogState();
@@ -34,7 +39,9 @@ class _BookingFormDialogState extends ConsumerState<BookingFormDialog> {
     super.initState();
     final booking = widget.booking;
     _motorController = TextEditingController(text: booking?.motorDescription);
-    _workshopController = TextEditingController(text: booking?.workshopName);
+    _workshopController = TextEditingController(
+      text: booking?.workshopName ?? widget.initialWorkshopName,
+    );
     _dateController = TextEditingController(
       text: booking != null
           ? booking.bookingDate.toIso8601String().split('T').first
@@ -98,7 +105,7 @@ class _BookingFormDialogState extends ConsumerState<BookingFormDialog> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   key: const Key('serviceTypeField'),
-                  value: _selectedServiceType,
+                  initialValue: _selectedServiceType,
                   decoration: const InputDecoration(
                     labelText: 'Jenis layanan servis',
                   ),

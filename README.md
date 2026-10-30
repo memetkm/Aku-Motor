@@ -45,7 +45,25 @@ Aplikasi mengadopsi arsitektur berlapis vertikal (*vertical slice*) yang menduku
 
 ### 5. Dashboard Terpadu
 - Merangkum total motor, total kilometer kendaraan, dan motor terbaru secara reaktif.
-- Navigasi cepat menuju **Kelola motor**, **Pengingat servis**, dan **Booking servis**.
+- Navigasi cepat menuju **Kelola motor**, **Pengingat servis**, **Booking servis**, dan **Bengkel terdekat (GPS)**.
+- Integrasi ikon profil pengguna (Autentikasi), lonceng badge notifikasi, serta tombol Bantuan Darurat SOS (Sensor).
+
+### 6. Integrasi 5 Fitur Tingkat Lanjut (Advanced Features)
+- **Autentikasi Pengguna & Profil (`features/auth`)**:
+  - Melindungi data kendaraan pribadi, sinkronisasi multi-device, dan mencegah tercampurnya catatan motor antarpengguna.
+  - Akun demo instan (`budi@akumotor.id` / `password123`), mode tamu (*guest mode*), pendaftaran akun baru, ubah profil nama/telepon, dan konfirmasi logout.
+- **Notifikasi Servis Cerdas (`features/notifications`)**:
+  - Mengirimkan pengingat proaktif sebelum batas rekomendasi oli mesin, v-belt, atau kampas rem habis.
+  - Manajemen izin notifikasi (*granted*, *denied*, *notDetermined*), badge jumlah belum dibaca, filter unread, serta tombol simulasi pengingat.
+- **Lokasi Bengkel Terdekat & Integrasi GPS (`features/locations`)**:
+  - Menghitung jarak real-time menggunakan formula Haversine ke bengkel resmi terdekat (AHASS Honda, Yamaha Sentral, Kawasaki, Suzuki, Bengkel Umum Mitra).
+  - Penanganan izin lokasi GPS, filter kategori merek, panggilan telepon bengkel, dan aksi 1-klik "Booking di Sini" yang otomatis mengisi nama bengkel ke form booking.
+- **Kamera & Bukti Foto Nota Servis (`features/camera`)**:
+  - Mengabadikan bukti fisik nota bengkel atau foto kilometer odometer sebagai bukti perawatan valid.
+  - Penanganan izin kamera, penanganan pembatalan (*cancellation handling*) saat batal foto, serta pratinjau nota digital (`PhotoPreviewDialog`).
+- **Sensor Guncangan & Bantuan Darurat SOS (`features/sensor`)**:
+  - Deteksi situasi darurat saat motor mogok di jalan raya.
+  - Akses cepat 1-sentuhan ke derek resmi Jasa Marga 24 jam (14080), Honda Care (1-500-989), YES Yamaha (021-4618000), dan Polisi (110).
 
 ---
 
@@ -196,3 +214,32 @@ flutter test
    - Periksa kartu status: Sisa jarak tempuh, estimasi hari, dan badge warna status (Aman / Perhatian / Ganti Segera).
    - Klik tombol **"Kalo Oli Mesin gak diganti bakal apa?"**.
    - Dialog akan menampilkan alasan rawan aus, 3 tingkatan akibat (Ringan, Sedang, Fatal), serta perbandingan biaya ganti tepat waktu vs biaya turun mesin jika merembet.
+
+3. **Demo Kamera & Bukti Foto Nota**:
+   - Buka form **Catat servis part** ➔ Klik **Ambil Foto Nota** (atau Galeri).
+   - Foto nota terlampir dengan stempel waktu dan token unik.
+   - Klik **Simpan catatan** ➔ Pada kartu servis, muncul badge **Nota**.
+   - Ketuk badge **Nota** atau tombol gambar ➔ Dialog `PhotoPreviewDialog` menampilkan detail bukti servis fisik terverifikasi.
+
+4. **Demo Lokasi & Bengkel Terdekat (GPS)**:
+   - Dari Dashboard, ketuk tombol **Bengkel terdekat (GPS)** (atau dari layar Booking).
+   - Tampil banner izin GPS: pilih **Izinkan** untuk menghitung jarak real-time dari posisi pengguna.
+   - Gunakan filter merek: **Honda**, **Yamaha**, atau **Umum**.
+   - Pilih salah satu bengkel (misal: AHASS 001) ➔ Ketuk **Booking di Sini**.
+   - Form booking servis otomatis terbuka dengan nama bengkel yang sudah terisi (*pre-filled*).
+
+5. **Demo Notifikasi Servis Cerdas**:
+   - Dari Dashboard, ketuk ikon lonceng notifikasi (terdapat badge merah unread).
+   - Tampil pusat notifikasi dengan banner izin notifikasi interaktif.
+   - Ketuk **Simulasikan Pengingat Servis** (atau sistem otomatis membuat saat part memasuki status *Perhatian/Urgent*).
+   - Ketuk notifikasi ➔ Status berubah menjadi terbaca (*read*), atau navigasi langsung ke menu terkait.
+
+6. **Demo Autentikasi Pengguna & Profil**:
+   - Dari Dashboard, ketuk ikon profil di kanan atas AppBar.
+   - Jika belum login, terbuka layar **Masuk Akun** ➔ Ketuk **Isi Cepat Akun Demo (Budi)** atau masuk mode tamu.
+   - Setelah masuk, ikon profil menampilkan avatar pengguna.
+   - Ketuk profil untuk melihat detail email, telepon, edit profil, atau logout.
+
+7. **Demo Sensor & Bantuan Darurat SOS**:
+   - Dari Dashboard, ketuk tombol merah **SOS** di AppBar.
+   - Dialog darurat menampilkan deteksi sensor guncangan dan nomor kontak derek resmi Jasa Marga 24 jam serta call center darurat.

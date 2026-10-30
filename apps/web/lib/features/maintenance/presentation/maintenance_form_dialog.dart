@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../camera/application/camera_providers.dart';
+import '../../camera/presentation/photo_preview_dialog.dart';
 import '../../motors/application/motor_providers.dart';
 import '../application/maintenance_providers.dart';
 import '../domain/maintenance_record.dart';
@@ -28,6 +30,7 @@ class _MaintenanceFormDialogState extends ConsumerState<MaintenanceFormDialog> {
   late final TextEditingController _notesController;
   String? _selectedMotorId;
   String? _selectedPartType;
+  String _photoUrl = '';
   bool _isSubmitting = false;
 
   @override
@@ -36,6 +39,7 @@ class _MaintenanceFormDialogState extends ConsumerState<MaintenanceFormDialog> {
     final record = widget.record;
     _selectedMotorId = record?.motorId ?? widget.initialMotorId;
     _selectedPartType = record?.partType ?? PartCatalog.partNames.first;
+    _photoUrl = record?.photoUrl ?? '';
     _kilometerController = TextEditingController(
       text: record?.lastReplacedKilometer.toString() ?? '',
     );
@@ -55,6 +59,64 @@ class _MaintenanceFormDialogState extends ConsumerState<MaintenanceFormDialog> {
     super.dispose();
   }
 
+  Future<void> _takePhoto() async {
+    final cameraService = ref.read(cameraServiceProvider);
+    final result = await cameraService.takePhoto(
+      label: 'Nota ${_selectedPartType ?? "Servis"}',
+    );
+
+    if (!mounted) return;
+    if (result.isCancelled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pengambilan foto dibatalkan.')),
+      );
+      return;
+    }
+    if (result.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.errorMessage!)),
+      );
+      return;
+    }
+    if (result.isSuccess) {
+      setState(() => _photoUrl = result.photoUrl);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Foto bukti nota berhasil dilampirkan!'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _pickGallery() async {
+    final cameraService = ref.read(cameraServiceProvider);
+    final result = await cameraService.pickFromGallery(
+      label: 'Nota Galeri ${_selectedPartType ?? "Servis"}',
+    );
+
+    if (!mounted) return;
+    if (result.isSuccess) {
+      setState(() => _photoUrl = result.photoUrl);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Foto dari galeri berhasil dilampirkan!'),
+        ),
+      );
+    }
+  }
+
+  void _previewPhoto() {
+    if (_photoUrl.isEmpty) return;
+    showDialog<void>(
+      context: context,
+      builder: (_) => PhotoPreviewDialog(
+        photoUrl: _photoUrl,
+        title: 'Bukti Servis: ${_selectedPartType ?? "Part"}',
+        date: DateTime.tryParse(_dateController.text),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final motors = ref.watch(motorListProvider).valueOrNull ?? const [];
@@ -72,17 +134,20 @@ class _MaintenanceFormDialogState extends ConsumerState<MaintenanceFormDialog> {
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (motors.isNotEmpty)
                   DropdownButtonFormField<String>(
                     key: const Key('motorSelectField'),
-                    value: _selectedMotorId,
+                    initialValue: _selectedMotorId,
                     decoration: const InputDecoration(labelText: 'Pilih Motor'),
                     items: motors
                         .map(
                           (m) => DropdownMenuItem(
                             value: m.id,
-                            child: Text('${m.brand} ${m.model} (${m.currentKilometer} km)'),
+                            child: Text(
+                              '${m.brand} ${m.model} (${m.currentKilometer} km)',
+                            ),
                           ),
                         )
                         .toList(),
@@ -102,7 +167,7 @@ class _MaintenanceFormDialogState extends ConsumerState<MaintenanceFormDialog> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   key: const Key('partTypeSelectField'),
-                  value: _selectedPartType,
+                  initialValue: _selectedPartType,
                   decoration: const InputDecoration(
                     labelText: 'Komponen yang Diservis / Diganti',
                   ),
@@ -170,6 +235,72 @@ class _MaintenanceFormDialogState extends ConsumerState<MaintenanceFormDialog> {
                     hintText: 'Misal: Oli Shell Advance 10W-40, bengkel resmi',
                   ),
                 ),
+                const SizedBox(height: 16),
+                // Camera / Photo Attachment Section
+                Text(
+                  'Lampiran Bukti Servis (Kamera / Nota)',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade700,
+                      ),
+                ),
+                const SizedBox(height: 6),
+                if (_photoUrl.isEmpty)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          key: const Key('cameraCaptureButton'),
+                          onPressed: _isSubmitting ? null : _takePhoto,
+                          icon: const Icon(Icons.camera_alt_outlined, size: 18),
+                          label: const Text('Ambil Foto Nota'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton.icon(
+                        key: const Key('galleryPickerButton'),
+                        onPressed: _isSubmitting ? null : _pickGallery,
+                        icon: const Icon(Icons.photo_library_outlined, size: 18),
+                        label: const Text('Galeri'),
+                      ),
+                    ],
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.receipt_outlined, color: Colors.blue.shade800),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Foto bukti nota terlampir',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.visibility_outlined, size: 20),
+                          tooltip: 'Lihat Foto',
+                          onPressed: _previewPhoto,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 20),
+                          tooltip: 'Hapus Foto',
+                          color: Colors.red.shade700,
+                          onPressed: () => setState(() => _photoUrl = ''),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
@@ -220,6 +351,7 @@ class _MaintenanceFormDialogState extends ConsumerState<MaintenanceFormDialog> {
       lastReplacedAt: DateTime.parse(_dateController.text.trim()),
       lastReplacedKilometer: int.parse(_kilometerController.text.trim()),
       notes: _notesController.text.trim(),
+      photoUrl: _photoUrl,
     );
 
     final notifier = ref.read(maintenanceListProvider.notifier);
@@ -238,4 +370,3 @@ class _MaintenanceFormDialogState extends ConsumerState<MaintenanceFormDialog> {
     }
   }
 }
-

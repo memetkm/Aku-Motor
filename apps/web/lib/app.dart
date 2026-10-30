@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/auth/presentation/login_screen.dart';
+import 'features/auth/presentation/register_screen.dart';
 import 'features/bookings/presentation/booking_list_screen.dart';
 import 'features/dashboard/presentation/dashboard_screen.dart';
+import 'features/locations/presentation/nearby_workshops_screen.dart';
 import 'features/maintenance/presentation/maintenance_list_screen.dart';
 import 'features/motors/presentation/motor_list_screen.dart';
+import 'features/notifications/presentation/notification_list_screen.dart';
 
 class AkuMotorApp extends StatelessWidget {
   const AkuMotorApp({super.key});
@@ -21,6 +25,10 @@ class AkuMotorApp extends StatelessWidget {
         MotorListScreen.routeName: (_) => const MotorListScreen(),
         BookingListScreen.routeName: (_) => const BookingListScreen(),
         MaintenanceListScreen.routeName: (_) => const MaintenanceListScreen(),
+        LoginScreen.routeName: (_) => const LoginScreen(),
+        RegisterScreen.routeName: (_) => const RegisterScreen(),
+        NotificationListScreen.routeName: (_) => const NotificationListScreen(),
+        NearbyWorkshopsScreen.routeName: (_) => const NearbyWorkshopsScreen(),
       },
     );
   }

@@ -64,7 +64,7 @@ void main() {
           overrides: [
             sharedPreferencesProvider.overrideWithValue(reopenedPreferences),
           ],
-          child: const AkuMotorApp(),
+          child: AkuMotorApp(key: UniqueKey()),
         ),
       );
       await tester.pumpAndSettle();

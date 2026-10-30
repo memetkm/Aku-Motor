@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_state.dart';
+import '../../camera/presentation/photo_preview_dialog.dart';
 import '../../motors/application/motor_providers.dart';
 import '../../motors/domain/motor.dart';
+import '../../notifications/application/notification_providers.dart';
 import '../application/maintenance_providers.dart';
 import '../domain/maintenance_record.dart';
 import 'maintenance_form_dialog.dart';
@@ -21,7 +23,16 @@ class MaintenanceListScreen extends ConsumerWidget {
     final motors = ref.watch(motorListProvider).valueOrNull ?? const <Motor>[];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pengingat & Perawatan')),
+      appBar: AppBar(
+        title: const Text('Pengingat & Perawatan'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            tooltip: 'Notifikasi Servis',
+            onPressed: () => Navigator.pushNamed(context, '/notifications'),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('addMaintenanceButton'),
         onPressed: () => _showForm(context),
@@ -38,6 +49,13 @@ class MaintenanceListScreen extends ConsumerWidget {
           onRetry: () => ref.read(maintenanceListProvider.notifier).reload(),
         ),
         data: (items) {
+          // Synchronize maintenance alerts into notifications automatically
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref
+                .read(notificationListProvider.notifier)
+                .syncFromMaintenance(items, motors);
+          });
+
           if (items.isEmpty) {
             return EmptyState(
               title: 'Belum ada catatan servis part',
@@ -72,7 +90,11 @@ class MaintenanceListScreen extends ConsumerWidget {
                   currentKm: currentKm,
                   onEdit: () => _showForm(context, record: record),
                   onDelete: () => _confirmDelete(context, ref, record),
-                  onLearnConsequences: () => _showConsequences(context, record.partType),
+                  onLearnConsequences: () =>
+                      _showConsequences(context, record.partType),
+                  onPreviewPhoto: record.photoUrl.isNotEmpty
+                      ? () => _previewPhoto(context, record)
+                      : null,
                 );
               },
             ),
@@ -97,6 +119,17 @@ class MaintenanceListScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _previewPhoto(BuildContext context, MaintenanceRecord record) async {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => PhotoPreviewDialog(
+        photoUrl: record.photoUrl,
+        title: 'Bukti Nota Servis: ${record.partType}',
+        date: record.lastReplacedAt,
+      ),
+    );
+  }
+
   Future<void> _confirmDelete(
     BuildContext context,
     WidgetRef ref,
@@ -105,7 +138,7 @@ class MaintenanceListScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus catatan servis?'),
+        title: const Text('Hapus Catatan?'),
         content: Text(
           'Catatan penggantian ${record.partType} akan dihapus dari aplikasi.',
         ),
@@ -135,6 +168,7 @@ class _MaintenanceCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onLearnConsequences,
+    this.onPreviewPhoto,
   });
 
   final MaintenanceRecord record;
@@ -143,6 +177,7 @@ class _MaintenanceCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onLearnConsequences;
+  final VoidCallback? onPreviewPhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +213,7 @@ class _MaintenanceCard extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: statusColor.withOpacity(0.12),
+                  backgroundColor: statusColor.withValues(alpha: 0.12),
                   child: Icon(statusIcon, color: statusColor),
                 ),
                 const SizedBox(width: 12),
@@ -186,11 +221,49 @@ class _MaintenanceCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        record.partType,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              record.partType,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          if (record.photoUrl.isNotEmpty) ...[
+                            InkWell(
+                              onTap: onPreviewPhoto,
+                              borderRadius: BorderRadius.circular(4),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 2,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.receipt_long,
+                                      size: 16,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      'Nota',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                        ],
                       ),
                       Text(
                         '$motorLabel • Ganti terakhir: $dateStr (${record.lastReplacedKilometer} km)',
@@ -202,7 +275,7 @@ class _MaintenanceCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: statusColor),
                   ),
@@ -262,14 +335,31 @@ class _MaintenanceCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: onLearnConsequences,
-              icon: const Icon(Icons.privacy_tip_outlined, size: 18),
-              label: Text('Kalo ${record.partType} gak diganti bakal apa?'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: statusColor,
-                side: BorderSide(color: statusColor),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onLearnConsequences,
+                    icon: const Icon(Icons.privacy_tip_outlined, size: 18),
+                    label: Text(
+                      'Kalo ${record.partType} gak diganti bakal apa?',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: statusColor,
+                      side: BorderSide(color: statusColor),
+                    ),
+                  ),
+                ),
+                if (record.photoUrl.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.image_outlined),
+                    tooltip: 'Lihat Foto Nota',
+                    onPressed: onPreviewPhoto,
+                  ),
+                ],
+              ],
             ),
           ],
         ),
@@ -277,4 +367,3 @@ class _MaintenanceCard extends StatelessWidget {
     );
   }
 }
-

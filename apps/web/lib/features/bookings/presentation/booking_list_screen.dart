@@ -16,7 +16,16 @@ class BookingListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bookings = ref.watch(bookingListProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Booking Servis')),
+      appBar: AppBar(
+        title: const Text('Booking Servis'),
+        actions: [
+          IconButton(
+            tooltip: 'Cari Bengkel Terdekat (GPS)',
+            icon: const Icon(Icons.location_on_outlined),
+            onPressed: () => Navigator.pushNamed(context, '/workshops'),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('addBookingButton'),
         onPressed: () => _showForm(context),

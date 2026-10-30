@@ -19,6 +19,7 @@ class MaintenanceRecord {
     required this.lastReplacedKilometer,
     required this.notes,
     required this.createdAt,
+    this.photoUrl = '',
   });
 
   final String id;
@@ -28,6 +29,7 @@ class MaintenanceRecord {
   final int lastReplacedKilometer;
   final String notes;
   final DateTime createdAt;
+  final String photoUrl;
 
   int calculateRemainingKm(int currentKilometer) {
     final info = PartCatalog.getInfo(partType);
@@ -68,6 +70,7 @@ class MaintenanceRecord {
     int? lastReplacedKilometer,
     String? notes,
     DateTime? createdAt,
+    String? photoUrl,
   }) {
     return MaintenanceRecord(
       id: id ?? this.id,
@@ -77,6 +80,7 @@ class MaintenanceRecord {
       lastReplacedKilometer: lastReplacedKilometer ?? this.lastReplacedKilometer,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
+      photoUrl: photoUrl ?? this.photoUrl,
     );
   }
 
@@ -88,6 +92,7 @@ class MaintenanceRecord {
         'lastReplacedKilometer': lastReplacedKilometer,
         'notes': notes,
         'createdAt': createdAt.toIso8601String(),
+        'photoUrl': photoUrl,
       };
 
   factory MaintenanceRecord.fromJson(Map<String, dynamic> json) =>
@@ -99,6 +104,7 @@ class MaintenanceRecord {
         lastReplacedKilometer: json['lastReplacedKilometer'] as int,
         notes: json['notes'] as String? ?? '',
         createdAt: DateTime.parse(json['createdAt'] as String),
+        photoUrl: json['photoUrl'] as String? ?? '',
       );
 }
 
@@ -109,6 +115,7 @@ class MaintenanceDraft {
     required this.lastReplacedAt,
     required this.lastReplacedKilometer,
     this.notes = '',
+    this.photoUrl = '',
   });
 
   final String motorId;
@@ -116,5 +123,6 @@ class MaintenanceDraft {
   final DateTime lastReplacedAt;
   final int lastReplacedKilometer;
   final String notes;
+  final String photoUrl;
 }
 
