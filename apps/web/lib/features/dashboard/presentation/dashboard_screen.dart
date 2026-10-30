@@ -67,6 +67,7 @@ class DashboardScreen extends ConsumerWidget {
               runSpacing: 12,
               children: [
                 FilledButton.icon(
+                  key: const Key('manageMotorButton'),
                   onPressed: () => Navigator.pushNamed(context, MotorListScreen.routeName),
                   icon: const Icon(Icons.garage_outlined),
                   label: const Text('Kelola motor'),
@@ -104,24 +105,24 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 220,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Icon(icon, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label),
-                  Text(value, style: Theme.of(context).textTheme.titleLarge),
-                ],
-              ),
-            ],
-          ),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(value, style: Theme.of(context).textTheme.titleLarge),
+          ],
         ),
       ),
     );

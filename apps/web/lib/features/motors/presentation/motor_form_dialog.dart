@@ -143,7 +143,7 @@ class _MotorFormDialogState extends ConsumerState<MotorFormDialog> {
     final notifier = ref.read(motorListProvider.notifier);
     final succeeded = widget.motor == null
         ? await notifier.create(draft)
-        : await notifier.update(widget.motor!.id, draft);
+        : await notifier.updateMotor(widget.motor!.id, draft);
     if (!mounted) return;
     if (succeeded) {
       Navigator.pop(context, true);

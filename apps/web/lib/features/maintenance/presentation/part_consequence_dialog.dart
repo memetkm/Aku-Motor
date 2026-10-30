@@ -105,28 +105,34 @@ class PartConsequenceDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Ganti tepat waktu:'),
-                        Text(
-                          'Rp ${_formatNumber(info.estimatedCostNow)}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Rp ${_formatNumber(info.estimatedCostNow)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Jika rusak merembet/turun mesin:'),
-                        Text(
-                          'Rp ${_formatNumber(info.estimatedCostLater)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red.shade800,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Rp ${_formatNumber(info.estimatedCostLater)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -197,4 +203,3 @@ class _ConsequenceTile extends StatelessWidget {
     );
   }
 }
-

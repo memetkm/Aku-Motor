@@ -39,7 +39,7 @@ class MotorListNotifier extends AsyncNotifier<List<Motor>> {
         () => _repository.create(draft),
       );
 
-  Future<bool> update(String id, MotorDraft draft) => _mutate(
+  Future<bool> updateMotor(String id, MotorDraft draft) => _mutate(
         () => _repository.update(id, draft),
       );
 

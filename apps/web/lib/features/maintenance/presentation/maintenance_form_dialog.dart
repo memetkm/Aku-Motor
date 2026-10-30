@@ -225,7 +225,7 @@ class _MaintenanceFormDialogState extends ConsumerState<MaintenanceFormDialog> {
     final notifier = ref.read(maintenanceListProvider.notifier);
     final succeeded = widget.record == null
         ? await notifier.create(draft)
-        : await notifier.update(widget.record!.id, draft);
+        : await notifier.updateMaintenance(widget.record!.id, draft);
 
     if (!mounted) return;
     if (succeeded) {
