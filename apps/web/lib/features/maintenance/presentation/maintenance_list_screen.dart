@@ -28,7 +28,7 @@ class MaintenanceListScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            tooltip: 'Notifikasi Servis',
+            tooltip: 'Pusat Notifikasi Servis',
             onPressed: () => Navigator.pushNamed(context, '/notifications'),
           ),
         ],
@@ -38,6 +38,7 @@ class MaintenanceListScreen extends ConsumerWidget {
         onPressed: () => _showForm(context),
         icon: const Icon(Icons.add_task),
         label: const Text('Catat servis part'),
+        tooltip: 'Catat servis atau penggantian komponen baru',
       ),
       body: maintenance.when(
         skipLoadingOnRefresh: false,
@@ -69,34 +70,49 @@ class MaintenanceListScreen extends ConsumerWidget {
           }
 
           return RefreshIndicator(
-            onRefresh: ref.read(maintenanceListProvider.notifier).reload,
-            child: ListView.separated(
-              key: const Key('maintenanceList'),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final record = items[index];
-                final matchingMotor = motors.cast<Motor?>().firstWhere(
-                      (m) => m?.id == record.motorId,
-                      orElse: () => null,
-                    );
-                final currentKm = matchingMotor?.currentKilometer ??
-                    record.lastReplacedKilometer;
-
-                return _MaintenanceCard(
-                  record: record,
-                  motor: matchingMotor,
-                  currentKm: currentKm,
-                  onEdit: () => _showForm(context, record: record),
-                  onDelete: () => _confirmDelete(context, ref, record),
-                  onLearnConsequences: () =>
-                      _showConsequences(context, record.partType),
-                  onPreviewPhoto: record.photoUrl.isNotEmpty
-                      ? () => _previewPhoto(context, record)
-                      : null,
+            onRefresh: () async {
+              await ref.read(maintenanceListProvider.notifier).reload();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Catatan perawatan berhasil diperbarui'),
+                    duration: Duration(seconds: 1),
+                  ),
                 );
-              },
+              }
+            },
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: ListView.separated(
+                  key: const Key('maintenanceList'),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final record = items[index];
+                    final matchingMotor = motors.cast<Motor?>().firstWhere(
+                          (m) => m?.id == record.motorId,
+                          orElse: () => null,
+                        );
+                    final currentKm = matchingMotor?.currentKilometer ??
+                        record.lastReplacedKilometer;
+
+                    return _MaintenanceCard(
+                      record: record,
+                      motor: matchingMotor,
+                      currentKm: currentKm,
+                      onEdit: () => _showForm(context, record: record),
+                      onDelete: () => _confirmDelete(context, ref, record),
+                      onLearnConsequences: () =>
+                          _showConsequences(context, record.partType),
+                      onPreviewPhoto: record.photoUrl.isNotEmpty
+                          ? () => _previewPhoto(context, record)
+                          : null,
+                    );
+                  },
+                ),
+              ),
             ),
           );
         },
@@ -105,11 +121,30 @@ class MaintenanceListScreen extends ConsumerWidget {
   }
 
   Future<void> _showForm(BuildContext context, {MaintenanceRecord? record}) async {
-    await showDialog<void>(
+    final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (_) => MaintenanceFormDialog(record: record),
     );
+
+    if (result == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                record == null
+                    ? 'Catatan servis baru berhasil disimpan!'
+                    : 'Catatan servis ${record.partType} berhasil diperbarui!',
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> _showConsequences(BuildContext context, String partName) async {
@@ -154,8 +189,50 @@ class MaintenanceListScreen extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(maintenanceListProvider.notifier).delete(record.id);
+
+    if (confirmed == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox.square(
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              Text('Menghapus catatan ${record.partType}...'),
+            ],
+          ),
+          duration: const Duration(milliseconds: 700),
+        ),
+      );
+
+      final success = await ref.read(maintenanceListProvider.notifier).delete(record.id);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.delete_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Text('Catatan servis ${record.partType} berhasil dihapus.'),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menghapus catatan ${record.partType}. Silakan coba lagi.'),
+            backgroundColor: Colors.red.shade800,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 }
@@ -272,23 +349,27 @@ class _MaintenanceCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: statusColor),
-                  ),
-                  child: Text(
-                    status.label,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                Semantics(
+                  label: 'Status servis: ${status.label}',
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: statusColor),
+                    ),
+                    child: Text(
+                      status.label,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ),
                 PopupMenuButton<String>(
+                  tooltip: 'Opsi untuk servis ${record.partType}',
                   onSelected: (val) => val == 'edit' ? onEdit() : onDelete(),
                   itemBuilder: (_) => const [
                     PopupMenuItem(value: 'edit', child: Text('Edit')),
@@ -355,7 +436,7 @@ class _MaintenanceCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.image_outlined),
-                    tooltip: 'Lihat Foto Nota',
+                    tooltip: 'Lihat Foto Nota Servis',
                     onPressed: onPreviewPhoto,
                   ),
                 ],

@@ -54,6 +54,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Pendaftaran berhasil! Anda telah masuk.'),
+          behavior: SnackBarBehavior.floating,
         ),
       );
       // Pop back past login screen to main app
@@ -78,6 +79,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ),
       body: Center(
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
@@ -144,6 +146,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           prefixIcon: Icon(Icons.person_outline),
                         ),
                         textInputAction: TextInputAction.next,
+                        scrollPadding: const EdgeInsets.only(bottom: 80),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Nama lengkap wajib diisi';
@@ -162,6 +165,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ),
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
+                        scrollPadding: const EdgeInsets.only(bottom: 80),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Email wajib diisi';
@@ -183,6 +187,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ),
                         keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.next,
+                        scrollPadding: const EdgeInsets.only(bottom: 80),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Nomor HP wajib diisi';
@@ -201,6 +206,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           labelText: 'Kata Sandi',
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
+                            tooltip: _obscurePassword
+                                ? 'Tampilkan kata sandi'
+                                : 'Sembunyikan kata sandi',
                             icon: Icon(_obscurePassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined),
@@ -210,6 +218,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ),
                         obscureText: _obscurePassword,
                         textInputAction: TextInputAction.next,
+                        scrollPadding: const EdgeInsets.only(bottom: 80),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Kata sandi wajib diisi';
@@ -230,6 +239,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ),
                         obscureText: _obscurePassword,
                         textInputAction: TextInputAction.done,
+                        scrollPadding: const EdgeInsets.only(bottom: 80),
                         onFieldSubmitted: (_) => _handleRegister(),
                         validator: (value) {
                           if (value != _passwordController.text) {

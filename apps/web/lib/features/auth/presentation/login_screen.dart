@@ -53,7 +53,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Berhasil masuk. Selamat datang!')),
+        const SnackBar(
+          content: Text('Berhasil masuk. Selamat datang!'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       Navigator.of(context).pop(true);
     } else {
@@ -88,6 +91,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
       body: Center(
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
@@ -178,6 +182,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
+                        scrollPadding: const EdgeInsets.only(bottom: 80),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Email wajib diisi';
@@ -196,6 +201,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           labelText: 'Kata Sandi',
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
+                            tooltip: _obscurePassword
+                                ? 'Tampilkan kata sandi'
+                                : 'Sembunyikan kata sandi',
                             icon: Icon(_obscurePassword
                                 ? Icons.visibility_off_outlined
                                 : Icons.visibility_outlined),
@@ -205,6 +213,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         obscureText: _obscurePassword,
                         textInputAction: TextInputAction.done,
+                        scrollPadding: const EdgeInsets.only(bottom: 80),
                         onFieldSubmitted: (_) => _handleLogin(),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {

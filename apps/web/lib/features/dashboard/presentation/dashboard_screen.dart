@@ -122,139 +122,144 @@ class DashboardScreen extends ConsumerWidget {
           message: error.toString(),
           onRetry: () => ref.read(motorListProvider.notifier).reload(),
         ),
-        data: (data) => ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Text(
-              user != null ? 'Selamat datang, ${user.name}' : 'Selamat datang',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 6),
-            const Text('Pantau kendaraan dan rawat sebelum terlambat.'),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
+        data: (data) => Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: ListView(
+              padding: const EdgeInsets.all(20),
               children: [
-                _SummaryCard(
-                  label: 'Total motor',
-                  value: '${data.totalMotors}',
-                  icon: Icons.two_wheeler,
+                Text(
+                  user != null ? 'Selamat datang, ${user.name}' : 'Selamat datang',
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                _SummaryCard(
-                  label: 'Total kilometer',
-                  value: '${data.totalKilometer} km',
-                  icon: Icons.speed,
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 6),
+                const Text('Pantau kendaraan dan rawat sebelum terlambat.'),
+                const SizedBox(height: 24),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
                   children: [
-                    Text(
-                      'Kendaraan terbaru',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    _SummaryCard(
+                      label: 'Total motor',
+                      value: '${data.totalMotors}',
+                      icon: Icons.two_wheeler,
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      data.latestMotor == null
-                          ? 'Belum ada motor yang disimpan.'
-                          : '${data.latestMotor!.brand} ${data.latestMotor!.model}',
+                    _SummaryCard(
+                      label: 'Total kilometer',
+                      value: '${data.totalKilometer} km',
+                      icon: Icons.speed,
                     ),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Main Action Buttons
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                FilledButton.icon(
-                  key: const Key('manageMotorButton'),
-                  onPressed: () =>
-                      Navigator.pushNamed(context, MotorListScreen.routeName),
-                  icon: const Icon(Icons.garage_outlined),
-                  label: const Text('Kelola motor'),
-                ),
-                FilledButton.tonalIcon(
-                  key: const Key('maintenanceButton'),
-                  onPressed: () => Navigator.pushNamed(
-                    context,
-                    MaintenanceListScreen.routeName,
-                  ),
-                  icon: const Icon(Icons.build_circle_outlined),
-                  label: const Text('Pengingat servis'),
-                ),
-                FilledButton.tonalIcon(
-                  key: const Key('manageBookingsButton'),
-                  onPressed: () => Navigator.pushNamed(
-                    context,
-                    BookingListScreen.routeName,
-                  ),
-                  icon: const Icon(Icons.calendar_month_outlined),
-                  label: const Text('Booking servis'),
-                ),
-                FilledButton.tonalIcon(
-                  key: const Key('workshopsButton'),
-                  onPressed: () => Navigator.pushNamed(
-                    context,
-                    NearbyWorkshopsScreen.routeName,
-                  ),
-                  icon: const Icon(Icons.near_me_outlined),
-                  label: const Text('Bengkel terdekat (GPS)'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            // Advanced Features Quick Guide Card
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.blue.shade100),
-              ),
-              color: Colors.blue.shade50.withValues(alpha: 0.5),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                const SizedBox(height: 24),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.verified_outlined,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
                         Text(
-                          'Fitur Cerdas Aku Motor',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                          'Kendaraan terbaru',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          data.latestMotor == null
+                              ? 'Belum ada motor yang disimpan.'
+                              : '${data.latestMotor!.brand} ${data.latestMotor!.model}',
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      '• 🔐 Autentikasi: Sesi akun aman & profil pemilik motor.\n'
-                      '• 🔔 Notifikasi: Peringatan dini sebelum batas oli & rem habis.\n'
-                      '• 📍 Lokasi GPS: Deteksi bengkel resmi terdekat & booking instan.\n'
-                      '• 📷 Kamera: Dokumentasi foto nota servis & bukti odometer.\n'
-                      '• 🚨 Sensor SOS: Deteksi guncangan & bantuan derek 24 jam.',
-                      style: TextStyle(fontSize: 12, height: 1.5),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Main Action Buttons
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    FilledButton.icon(
+                      key: const Key('manageMotorButton'),
+                      onPressed: () =>
+                          Navigator.pushNamed(context, MotorListScreen.routeName),
+                      icon: const Icon(Icons.garage_outlined),
+                      label: const Text('Kelola motor'),
+                    ),
+                    FilledButton.tonalIcon(
+                      key: const Key('maintenanceButton'),
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        MaintenanceListScreen.routeName,
+                      ),
+                      icon: const Icon(Icons.build_circle_outlined),
+                      label: const Text('Pengingat servis'),
+                    ),
+                    FilledButton.tonalIcon(
+                      key: const Key('manageBookingsButton'),
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        BookingListScreen.routeName,
+                      ),
+                      icon: const Icon(Icons.calendar_month_outlined),
+                      label: const Text('Booking servis'),
+                    ),
+                    FilledButton.tonalIcon(
+                      key: const Key('workshopsButton'),
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        NearbyWorkshopsScreen.routeName,
+                      ),
+                      icon: const Icon(Icons.near_me_outlined),
+                      label: const Text('Bengkel terdekat (GPS)'),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 24),
+                // Advanced Features Quick Guide Card
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.blue.shade100),
+                  ),
+                  color: Colors.blue.shade50.withValues(alpha: 0.5),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.verified_outlined,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Fitur Cerdas Aku Motor',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          '• 🔐 Autentikasi: Sesi akun aman & profil pemilik motor.\n'
+                          '• 🔔 Notifikasi: Peringatan dini sebelum batas oli & rem habis.\n'
+                          '• 📍 Lokasi GPS: Deteksi bengkel resmi terdekat & booking instan.\n'
+                          '• 📷 Kamera: Dokumentasi foto nota servis & bukti odometer.\n'
+                          '• 🚨 Sensor SOS: Deteksi guncangan & bantuan derek 24 jam.',
+                          style: TextStyle(fontSize: 12, height: 1.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -274,24 +279,27 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(value, style: Theme.of(context).textTheme.titleLarge),
-          ],
+    return Semantics(
+      label: '$label: $value',
+      container: true,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon),
+                  const SizedBox(width: 8),
+                  Text(label, style: Theme.of(context).textTheme.bodyMedium),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(value, style: Theme.of(context).textTheme.titleLarge),
+            ],
+          ),
         ),
       ),
     );

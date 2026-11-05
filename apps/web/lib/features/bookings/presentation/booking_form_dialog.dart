@@ -65,110 +65,121 @@ class _BookingFormDialogState extends ConsumerState<BookingFormDialog> {
     final isEditing = widget.booking != null;
     return AlertDialog(
       title: Text(isEditing ? 'Edit booking servis' : 'Buat booking servis'),
-      content: SizedBox(
-        width: 500,
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  key: const Key('motorField'),
-                  controller: _motorController,
-                  decoration: const InputDecoration(
-                    labelText: 'Motor (Merek & Model)',
-                    hintText: 'Contoh: Honda Vario 160 (B 1234 ABC)',
-                  ),
-                  textInputAction: TextInputAction.next,
-                  validator: _required,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('workshopField'),
-                  controller: _workshopController,
-                  decoration: const InputDecoration(
-                    labelText: 'Bengkel tujuan',
-                    hintText: 'Contoh: Bengkel Resmi AHASS 001',
-                  ),
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Wajib diisi';
-                    }
-                    if (value.trim().length < 3) {
-                      return 'Nama bengkel minimal 3 karakter';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  key: const Key('serviceTypeField'),
-                  initialValue: _selectedServiceType,
-                  decoration: const InputDecoration(
-                    labelText: 'Jenis layanan servis',
-                  ),
-                  items: kServiceTypes
-                      .map(
-                        (type) => DropdownMenuItem(
-                          value: type,
-                          child: Text(type),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: _isSubmitting
-                      ? null
-                      : (value) {
-                          setState(() => _selectedServiceType = value);
-                        },
-                  validator: (value) =>
-                      value == null || value.isEmpty ? 'Pilih jenis servis' : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('dateField'),
-                  controller: _dateController,
-                  decoration: InputDecoration(
-                    labelText: 'Tanggal servis (YYYY-MM-DD)',
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.calendar_today),
-                      onPressed: _isSubmitting ? null : _pickDate,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: SizedBox(
+          width: double.maxFinite,
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    key: const Key('motorField'),
+                    controller: _motorController,
+                    decoration: const InputDecoration(
+                      labelText: 'Motor (Merek & Model)',
+                      hintText: 'Contoh: Honda Vario 160 (B 1234 ABC)',
                     ),
+                    textInputAction: TextInputAction.next,
+                    scrollPadding: const EdgeInsets.only(bottom: 80),
+                    validator: _required,
                   ),
-                  keyboardType: TextInputType.datetime,
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Wajib diisi';
-                    }
-                    final parsed = DateTime.tryParse(value.trim());
-                    if (parsed == null) {
-                      return 'Format tanggal salah (YYYY-MM-DD)';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('notesField'),
-                  controller: _notesController,
-                  decoration: const InputDecoration(
-                    labelText: 'Keluhan / Catatan perawatan',
-                    hintText: 'Jelaskan kondisi motor atau kebutuhan servis',
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('workshopField'),
+                    controller: _workshopController,
+                    decoration: const InputDecoration(
+                      labelText: 'Bengkel tujuan',
+                      hintText: 'Contoh: Bengkel Resmi AHASS 001',
+                    ),
+                    textInputAction: TextInputAction.next,
+                    scrollPadding: const EdgeInsets.only(bottom: 80),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Wajib diisi';
+                      }
+                      if (value.trim().length < 3) {
+                        return 'Nama bengkel minimal 3 karakter';
+                      }
+                      return null;
+                    },
                   ),
-                  maxLines: 3,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Wajib diisi';
-                    }
-                    if (value.trim().length < 5) {
-                      return 'Keluhan minimal 5 karakter';
-                    }
-                    return null;
-                  },
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    key: const Key('serviceTypeField'),
+                    initialValue: _selectedServiceType,
+                    decoration: const InputDecoration(
+                      labelText: 'Jenis layanan servis',
+                    ),
+                    items: kServiceTypes
+                        .map(
+                          (type) => DropdownMenuItem(
+                            value: type,
+                            child: Text(type),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _isSubmitting
+                        ? null
+                        : (value) {
+                            setState(() => _selectedServiceType = value);
+                          },
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Pilih jenis servis' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('dateField'),
+                    controller: _dateController,
+                    decoration: InputDecoration(
+                      labelText: 'Tanggal servis (YYYY-MM-DD)',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.calendar_today),
+                        tooltip: 'Pilih tanggal servis',
+                        onPressed: _isSubmitting ? null : _pickDate,
+                      ),
+                    ),
+                    keyboardType: TextInputType.datetime,
+                    textInputAction: TextInputAction.next,
+                    scrollPadding: const EdgeInsets.only(bottom: 80),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Wajib diisi';
+                      }
+                      final parsed = DateTime.tryParse(value.trim());
+                      if (parsed == null) {
+                        return 'Format tanggal salah (YYYY-MM-DD)';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('notesField'),
+                    controller: _notesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Keluhan / Catatan perawatan',
+                      hintText: 'Jelaskan kondisi motor atau kebutuhan servis',
+                    ),
+                    maxLines: 3,
+                    textInputAction: TextInputAction.done,
+                    scrollPadding: const EdgeInsets.only(bottom: 80),
+                    onFieldSubmitted: (_) => _submit(),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Wajib diisi';
+                      }
+                      if (value.trim().length < 5) {
+                        return 'Keluhan minimal 5 karakter';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),

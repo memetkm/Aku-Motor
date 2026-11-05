@@ -46,11 +46,20 @@ class _NotificationListScreenState
             },
           ),
           PopupMenuButton<String>(
+            tooltip: 'Opsi notifikasi',
             onSelected: (value) async {
               if (value == 'read_all') {
                 await ref
                     .read(notificationListProvider.notifier)
                     .markAllAsRead();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Semua notifikasi ditandai telah dibaca.'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
               } else if (value == 'clear_all') {
                 final confirmed = await showDialog<bool>(
                   context: context,
@@ -73,6 +82,14 @@ class _NotificationListScreenState
                 );
                 if (confirmed == true) {
                   await ref.read(notificationListProvider.notifier).clearAll();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Semua notifikasi telah dihapus.'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
                 }
               }
             },
@@ -101,95 +118,111 @@ class _NotificationListScreenState
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // 1. Permission Status Banner
-          _buildPermissionBanner(context, permission),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 860),
+          child: Column(
+            children: [
+              // 1. Permission Status Banner
+              _buildPermissionBanner(context, permission),
 
-          // 2. Filter Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                ChoiceChip(
-                  label: const Text('Semua'),
-                  selected: !_filterOnlyUnread,
-                  onSelected: (val) {
-                    if (val) setState(() => _filterOnlyUnread = false);
-                  },
-                ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Belum Dibaca'),
-                  selected: _filterOnlyUnread,
-                  onSelected: (val) {
-                    if (val) setState(() => _filterOnlyUnread = true);
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // 3. Main Content
-          Expanded(
-            child: notificationsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(key: Key('notificationLoading')),
-              ),
-              error: (err, _) => ErrorState(
-                message: err.toString(),
-                onRetry: () =>
-                    ref.read(notificationListProvider.notifier).reload(),
-              ),
-              data: (list) {
-                final filtered = _filterOnlyUnread
-                    ? list.where((n) => !n.isRead).toList()
-                    : list;
-
-                if (filtered.isEmpty) {
-                  return EmptyState(
-                    title: _filterOnlyUnread
-                        ? 'Tidak ada notifikasi belum dibaca'
-                        : 'Belum ada notifikasi',
-                    message:
-                        'Pengingat otomatis akan muncul di sini saat motor Anda mendekati batas servis komponen penting.',
-                    icon: Icons.notifications_none_outlined,
-                    actionLabel: 'Simulasi Pengingat Baru',
-                    onAction: () => ref
-                        .read(notificationListProvider.notifier)
-                        .triggerSimulatedReminder(),
-                  );
-                }
-
-                return ListView.separated(
-                  key: const Key('notificationList'),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final item = filtered[index];
-                    return _NotificationTile(
-                      notification: item,
-                      onTap: () async {
-                        if (!item.isRead) {
-                          await ref
-                              .read(notificationListProvider.notifier)
-                              .markAsRead(item.id);
-                        }
-                        if (item.route != null && context.mounted) {
-                          Navigator.pushNamed(context, item.route!);
-                        }
+              // 2. Filter Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    ChoiceChip(
+                      label: const Text('Semua'),
+                      selected: !_filterOnlyUnread,
+                      onSelected: (val) {
+                        if (val) setState(() => _filterOnlyUnread = false);
                       },
-                      onDelete: () => ref
-                          .read(notificationListProvider.notifier)
-                          .delete(item.id),
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: const Text('Belum Dibaca'),
+                      selected: _filterOnlyUnread,
+                      onSelected: (val) {
+                        if (val) setState(() => _filterOnlyUnread = true);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              // 3. Main Content
+              Expanded(
+                child: notificationsAsync.when(
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(key: Key('notificationLoading')),
+                  ),
+                  error: (err, _) => ErrorState(
+                    message: err.toString(),
+                    onRetry: () =>
+                        ref.read(notificationListProvider.notifier).reload(),
+                  ),
+                  data: (list) {
+                    final filtered = _filterOnlyUnread
+                        ? list.where((n) => !n.isRead).toList()
+                        : list;
+
+                    if (filtered.isEmpty) {
+                      return EmptyState(
+                        title: _filterOnlyUnread
+                            ? 'Tidak ada notifikasi belum dibaca'
+                            : 'Belum ada notifikasi',
+                        message:
+                            'Pengingat otomatis akan muncul di sini saat motor Anda mendekati batas servis komponen penting.',
+                        icon: Icons.notifications_none_outlined,
+                        actionLabel: 'Simulasi Pengingat Baru',
+                        onAction: () => ref
+                            .read(notificationListProvider.notifier)
+                            .triggerSimulatedReminder(),
+                      );
+                    }
+
+                    return ListView.separated(
+                      key: const Key('notificationList'),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final item = filtered[index];
+                        return _NotificationTile(
+                          notification: item,
+                          onTap: () async {
+                            if (!item.isRead) {
+                              await ref
+                                  .read(notificationListProvider.notifier)
+                                  .markAsRead(item.id);
+                            }
+                            if (item.route != null && context.mounted) {
+                              Navigator.pushNamed(context, item.route!);
+                            }
+                          },
+                          onDelete: () async {
+                            await ref
+                                .read(notificationListProvider.notifier)
+                                .delete(item.id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Notifikasi telah dihapus.'),
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -434,6 +467,7 @@ class _NotificationTile extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.close, size: 16),
+                tooltip: 'Hapus notifikasi',
                 color: Colors.grey.shade500,
                 onPressed: onDelete,
               ),

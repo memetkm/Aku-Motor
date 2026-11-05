@@ -22,6 +22,7 @@ class MotorListScreen extends ConsumerWidget {
         onPressed: () => _showForm(context),
         icon: const Icon(Icons.add),
         label: const Text('Tambah motor'),
+        tooltip: 'Tambah motor baru',
       ),
       body: motors.when(
         skipLoadingOnRefresh: false,
@@ -42,16 +43,31 @@ class MotorListScreen extends ConsumerWidget {
             );
           }
           return RefreshIndicator(
-            onRefresh: ref.read(motorListProvider.notifier).reload,
-            child: ListView.separated(
-              key: const Key('motorList'),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) => _MotorCard(
-                motor: items[index],
-                onEdit: () => _showForm(context, motor: items[index]),
-                onDelete: () => _confirmDelete(context, ref, items[index]),
+            onRefresh: () async {
+              await ref.read(motorListProvider.notifier).reload();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Daftar motor berhasil diperbarui'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              }
+            },
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: ListView.separated(
+                  key: const Key('motorList'),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) => _MotorCard(
+                    motor: items[index],
+                    onEdit: () => _showForm(context, motor: items[index]),
+                    onDelete: () => _confirmDelete(context, ref, items[index]),
+                  ),
+                ),
               ),
             ),
           );
@@ -61,11 +77,30 @@ class MotorListScreen extends ConsumerWidget {
   }
 
   Future<void> _showForm(BuildContext context, {Motor? motor}) async {
-    await showDialog<void>(
+    final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (_) => MotorFormDialog(motor: motor),
     );
+
+    if (result == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                motor == null
+                    ? 'Motor baru berhasil ditambahkan!'
+                    : 'Data motor ${motor.brand} ${motor.model} berhasil diperbarui!',
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> _confirmDelete(
@@ -79,7 +114,10 @@ class MotorListScreen extends ConsumerWidget {
         title: const Text('Hapus motor?'),
         content: Text('${motor.brand} ${motor.model} akan dihapus dari perangkat.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Hapus'),
@@ -87,8 +125,50 @@ class MotorListScreen extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref.read(motorListProvider.notifier).delete(motor.id);
+
+    if (confirmed == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox.square(
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              Text('Menghapus ${motor.brand} ${motor.model}...'),
+            ],
+          ),
+          duration: const Duration(milliseconds: 700),
+        ),
+      );
+
+      final success = await ref.read(motorListProvider.notifier).delete(motor.id);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.delete_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Text('${motor.brand} ${motor.model} berhasil dihapus.'),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menghapus ${motor.brand} ${motor.model}. Silakan coba lagi.'),
+            backgroundColor: Colors.red.shade800,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 }
@@ -115,6 +195,7 @@ class _MotorCard extends StatelessWidget {
         title: Text('${motor.brand} ${motor.model}'),
         subtitle: Text('${motor.year} • ${motor.currentKilometer} km'),
         trailing: PopupMenuButton<String>(
+          tooltip: 'Opsi untuk ${motor.brand} ${motor.model}',
           onSelected: (value) => value == 'edit' ? onEdit() : onDelete(),
           itemBuilder: (_) => const [
             PopupMenuItem(value: 'edit', child: Text('Edit')),

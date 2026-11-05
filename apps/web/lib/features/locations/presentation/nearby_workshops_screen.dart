@@ -48,92 +48,108 @@ class NearbyWorkshopsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // 1. Permission / GPS Status Banner
-          _buildLocationBanner(context, ref, permission, userPosition),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 860),
+          child: Column(
+            children: [
+              // 1. Permission / GPS Status Banner
+              _buildLocationBanner(context, ref, permission, userPosition),
 
-          // 2. Category Filter Chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: categories.map((cat) {
-                final isSelected = selectedCategory == cat;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(cat),
-                    selected: isSelected,
-                    onSelected: (_) {
-                      ref.read(workshopCategoryFilterProvider.notifier).state =
-                          cat;
-                    },
+              // 2. Category Filter Chips
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: categories.map((cat) {
+                    final isSelected = selectedCategory == cat;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(cat),
+                        selected: isSelected,
+                        onSelected: (_) {
+                          ref.read(workshopCategoryFilterProvider.notifier).state =
+                              cat;
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              // 3. Workshop List
+              Expanded(
+                child: workshopsAsync.when(
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(key: Key('workshopLoading')),
                   ),
-                );
-              }).toList(),
-            ),
-          ),
+                  error: (err, _) => ErrorState(
+                    message: err.toString(),
+                    onRetry: () => ref.refresh(nearbyWorkshopsProvider),
+                  ),
+                  data: (workshops) {
+                    if (workshops.isEmpty) {
+                      return EmptyState(
+                        title: 'Tidak ada bengkel ditemukan',
+                        message:
+                            'Tidak ada bengkel kategori "$selectedCategory" di sekitar lokasi Anda. Coba pilih kategori lain.',
+                        icon: Icons.location_off_outlined,
+                        actionLabel: 'Tampilkan Semua Bengkel',
+                        onAction: () {
+                          ref.read(workshopCategoryFilterProvider.notifier).state =
+                              'Semua';
+                        },
+                      );
+                    }
 
-          // 3. Workshop List
-          Expanded(
-            child: workshopsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(key: Key('workshopLoading')),
-              ),
-              error: (err, _) => ErrorState(
-                message: err.toString(),
-                onRetry: () => ref.refresh(nearbyWorkshopsProvider),
-              ),
-              data: (workshops) {
-                if (workshops.isEmpty) {
-                  return EmptyState(
-                    title: 'Tidak ada bengkel ditemukan',
-                    message:
-                        'Tidak ada bengkel kategori "$selectedCategory" di sekitar lokasi Anda. Coba pilih kategori lain.',
-                    icon: Icons.location_off_outlined,
-                    actionLabel: 'Tampilkan Semua Bengkel',
-                    onAction: () {
-                      ref.read(workshopCategoryFilterProvider.notifier).state =
-                          'Semua';
-                    },
-                  );
-                }
-
-                return ListView.separated(
-                  key: const Key('workshopList'),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: workshops.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final item = workshops[index];
-                    return _WorkshopCard(
-                      workshop: item,
-                      onCall: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Menghubungi ${item.name} (${item.phone})...',
-                            ),
-                          ),
-                        );
-                      },
-                      onBooking: () async {
-                        await showDialog<void>(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) => BookingFormDialog(
-                            initialWorkshopName: item.name,
-                          ),
+                    return ListView.separated(
+                      key: const Key('workshopList'),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: workshops.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final item = workshops[index];
+                        return _WorkshopCard(
+                          workshop: item,
+                          onCall: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Menghubungi ${item.name} (${item.phone})...',
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          onBooking: () async {
+                            final res = await showDialog<bool>(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (_) => BookingFormDialog(
+                                initialWorkshopName: item.name,
+                              ),
+                            );
+                            if (res == true && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Booking servis di ${item.name} berhasil dibuat!',
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
                         );
                       },
                     );
                   },
-                );
-              },
-            ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

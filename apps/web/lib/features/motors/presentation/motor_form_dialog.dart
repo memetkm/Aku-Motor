@@ -47,68 +47,94 @@ class _MotorFormDialogState extends ConsumerState<MotorFormDialog> {
     final isEditing = widget.motor != null;
     return AlertDialog(
       title: Text(isEditing ? 'Edit motor' : 'Tambah motor'),
-      content: SizedBox(
-        width: 480,
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  key: const Key('brandField'),
-                  controller: _brandController,
-                  decoration: const InputDecoration(labelText: 'Merek'),
-                  textInputAction: TextInputAction.next,
-                  validator: _required,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('modelField'),
-                  controller: _modelController,
-                  decoration: const InputDecoration(labelText: 'Model'),
-                  textInputAction: TextInputAction.next,
-                  validator: _required,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('yearField'),
-                  controller: _yearController,
-                  decoration: const InputDecoration(labelText: 'Tahun'),
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    final year = int.tryParse(value ?? '');
-                    final maximum = DateTime.now().year + 1;
-                    if (year == null || year < 1950 || year > maximum) {
-                      return 'Masukkan tahun 1950–$maximum';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('kilometerField'),
-                  controller: _kilometerController,
-                  decoration: const InputDecoration(labelText: 'Kilometer saat ini'),
-                  keyboardType: TextInputType.number,
-                  onFieldSubmitted: (_) => _submit(),
-                  validator: (value) {
-                    final kilometer = int.tryParse(value ?? '');
-                    if (kilometer == null || kilometer < 0) {
-                      return 'Kilometer harus berupa angka 0 atau lebih';
-                    }
-                    return null;
-                  },
-                ),
-              ],
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: SizedBox(
+          width: double.maxFinite,
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    key: const Key('brandField'),
+                    controller: _brandController,
+                    scrollPadding: const EdgeInsets.only(bottom: 80),
+                    decoration: const InputDecoration(
+                      labelText: 'Merek',
+                      hintText: 'Contoh: Honda, Yamaha, Suzuki',
+                      prefixIcon: Icon(Icons.two_wheeler_outlined),
+                    ),
+                    textInputAction: TextInputAction.next,
+                    validator: _required,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('modelField'),
+                    controller: _modelController,
+                    scrollPadding: const EdgeInsets.only(bottom: 80),
+                    decoration: const InputDecoration(
+                      labelText: 'Model',
+                      hintText: 'Contoh: Vario 160, NMAX 155',
+                      prefixIcon: Icon(Icons.motorcycle_outlined),
+                    ),
+                    textInputAction: TextInputAction.next,
+                    validator: _required,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('yearField'),
+                    controller: _yearController,
+                    scrollPadding: const EdgeInsets.only(bottom: 80),
+                    decoration: const InputDecoration(
+                      labelText: 'Tahun',
+                      hintText: 'Contoh: 2024',
+                      prefixIcon: Icon(Icons.calendar_today_outlined),
+                    ),
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.next,
+                    validator: (value) {
+                      final year = int.tryParse(value ?? '');
+                      final maximum = DateTime.now().year + 1;
+                      if (year == null || year < 1950 || year > maximum) {
+                        return 'Masukkan tahun 1950–$maximum';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('kilometerField'),
+                    controller: _kilometerController,
+                    scrollPadding: const EdgeInsets.only(bottom: 80),
+                    decoration: const InputDecoration(
+                      labelText: 'Kilometer saat ini',
+                      hintText: 'Contoh: 8500',
+                      prefixIcon: Icon(Icons.speed_outlined),
+                      suffixText: 'km',
+                    ),
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _submit(),
+                    validator: (value) {
+                      final kilometer = int.tryParse(value ?? '');
+                      if (kilometer == null || kilometer < 0) {
+                        return 'Kilometer harus berupa angka 0 atau lebih';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
       actions: [
         TextButton(
-          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context, false),
           child: const Text('Batal'),
         ),
         FilledButton(

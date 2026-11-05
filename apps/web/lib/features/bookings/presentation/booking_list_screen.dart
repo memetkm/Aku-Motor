@@ -43,25 +43,46 @@ class BookingListScreen extends ConsumerWidget {
         ),
         data: (items) {
           if (items.isEmpty) {
-            return EmptyState(
-              title: 'Belum ada booking servis',
-              message: 'Jadwalkan perawatan rutin atau perbaikan bengkel dengan mudah.',
-              actionLabel: 'Buat booking sekarang',
-              icon: Icons.calendar_month_outlined,
-              onAction: () => _showForm(context),
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: EmptyState(
+                  title: 'Belum ada booking servis',
+                  message: 'Jadwalkan perawatan rutin atau perbaikan bengkel dengan mudah.',
+                  actionLabel: 'Buat booking sekarang',
+                  icon: Icons.calendar_month_outlined,
+                  onAction: () => _showForm(context),
+                ),
+              ),
             );
           }
           return RefreshIndicator(
-            onRefresh: ref.read(bookingListProvider.notifier).reload,
-            child: ListView.separated(
-              key: const Key('bookingList'),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) => _BookingCard(
-                booking: items[index],
-                onEdit: () => _showForm(context, booking: items[index]),
-                onDelete: () => _confirmDelete(context, ref, items[index]),
+            onRefresh: () async {
+              await ref.read(bookingListProvider.notifier).reload();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Daftar booking berhasil diperbarui.'),
+                    duration: Duration(seconds: 1),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: ListView.separated(
+                  key: const Key('bookingList'),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) => _BookingCard(
+                    booking: items[index],
+                    onEdit: () => _showForm(context, booking: items[index]),
+                    onDelete: () => _confirmDelete(context, ref, items[index]),
+                  ),
+                ),
               ),
             ),
           );
@@ -71,11 +92,23 @@ class BookingListScreen extends ConsumerWidget {
   }
 
   Future<void> _showForm(BuildContext context, {Booking? booking}) async {
-    await showDialog<void>(
+    final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (_) => BookingFormDialog(booking: booking),
     );
+    if (result == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            booking == null
+                ? 'Booking servis berhasil dikonfirmasi!'
+                : 'Perubahan booking berhasil disimpan.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> _confirmDelete(
@@ -103,7 +136,37 @@ class BookingListScreen extends ConsumerWidget {
       ),
     );
     if (confirmed == true) {
-      await ref.read(bookingListProvider.notifier).delete(booking.id);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              SizedBox.square(
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 12),
+              Text('Membatalkan booking...'),
+            ],
+          ),
+          duration: Duration(milliseconds: 600),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      final ok = await ref.read(bookingListProvider.notifier).delete(booking.id);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              ok
+                  ? 'Booking servis berhasil dibatalkan.'
+                  : 'Gagal membatalkan booking.',
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 }
@@ -159,6 +222,7 @@ class _BookingCard extends StatelessWidget {
                   ),
                 ),
                 PopupMenuButton<String>(
+                  tooltip: 'Menu opsi booking',
                   onSelected: (value) => value == 'edit' ? onEdit() : onDelete(),
                   itemBuilder: (_) => const [
                     PopupMenuItem(value: 'edit', child: Text('Edit')),

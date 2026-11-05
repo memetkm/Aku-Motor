@@ -126,84 +126,94 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
           ),
         ],
       ),
-      content: SizedBox(
-        width: 440,
-        child: SingleChildScrollView(
-          child: _isEditing
-              ? Form(
-                  key: _formKey,
-                  child: Column(
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: _isEditing
+                ? Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextFormField(
+                          key: const Key('profileNameField'),
+                          controller: _nameController,
+                          decoration: const InputDecoration(labelText: 'Nama Lengkap'),
+                          textInputAction: TextInputAction.next,
+                          scrollPadding: const EdgeInsets.only(bottom: 80),
+                          validator: (v) =>
+                              v == null || v.trim().isEmpty ? 'Nama wajib diisi' : null,
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          key: const Key('profilePhoneField'),
+                          controller: _phoneController,
+                          decoration: const InputDecoration(labelText: 'Nomor HP'),
+                          keyboardType: TextInputType.phone,
+                          textInputAction: TextInputAction.done,
+                          scrollPadding: const EdgeInsets.only(bottom: 80),
+                          onFieldSubmitted: (_) => _handleSave(),
+                          validator: (v) =>
+                              v == null || v.trim().isEmpty ? 'Nomor HP wajib diisi' : null,
+                        ),
+                      ],
+                    ),
+                  )
+                : Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextFormField(
-                        key: const Key('profileNameField'),
-                        controller: _nameController,
-                        decoration: const InputDecoration(labelText: 'Nama Lengkap'),
-                        validator: (v) =>
-                            v == null || v.trim().isEmpty ? 'Nama wajib diisi' : null,
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.email_outlined),
+                        title: const Text('Email'),
+                        subtitle: Text(user.email),
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        key: const Key('profilePhoneField'),
-                        controller: _phoneController,
-                        decoration: const InputDecoration(labelText: 'Nomor HP'),
-                        validator: (v) =>
-                            v == null || v.trim().isEmpty ? 'Nomor HP wajib diisi' : null,
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.phone_outlined),
+                        title: const Text('Nomor Telepon'),
+                        subtitle: Text(
+                          user.phoneNumber.isEmpty ? '-' : user.phoneNumber,
+                        ),
                       ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.calendar_today_outlined),
+                        title: const Text('Terdaftar Sejak'),
+                        subtitle: Text(
+                          user.createdAt.toIso8601String().split('T').first,
+                        ),
+                      ),
+                      if (user.isGuest) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.amber.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline,
+                                  color: Colors.amber.shade900, size: 20),
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                child: Text(
+                                  'Anda sedang menggunakan mode tamu. Masuk atau daftar akun untuk menyimpan data ke cloud.',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
-                )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.email_outlined),
-                      title: const Text('Email'),
-                      subtitle: Text(user.email),
-                    ),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.phone_outlined),
-                      title: const Text('Nomor Telepon'),
-                      subtitle: Text(
-                        user.phoneNumber.isEmpty ? '-' : user.phoneNumber,
-                      ),
-                    ),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.calendar_today_outlined),
-                      title: const Text('Terdaftar Sejak'),
-                      subtitle: Text(
-                        user.createdAt.toIso8601String().split('T').first,
-                      ),
-                    ),
-                    if (user.isGuest) ...[
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.amber.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline,
-                                color: Colors.amber.shade900, size: 20),
-                            const SizedBox(width: 8),
-                            const Expanded(
-                              child: Text(
-                                'Anda sedang menggunakan mode tamu. Masuk atau daftar akun untuk menyimpan data ke cloud.',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+          ),
         ),
       ),
       actions: [

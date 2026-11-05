@@ -20,127 +20,126 @@ class PartConsequenceDialog extends StatelessWidget {
           Expanded(child: Text('Edukasi: ${info.name}')),
         ],
       ),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Alasan rawan rusak
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.info_outline, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Kenapa rawan aus: ${info.vulnerabilityReason}',
-                        style: theme.textTheme.bodyMedium,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Alasan rawan rusak
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Kenapa rawan aus: ${info.vulnerabilityReason}',
+                          style: theme.textTheme.bodyMedium,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Kalo gak diganti bakal apa?',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade900,
+                const SizedBox(height: 16),
+                Text(
+                  'Kalo gak diganti bakal apa?',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red.shade900,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-              // Level 1: Akibat Ringan
-              _ConsequenceTile(
-                level: '1. Akibat Awal / Ringan',
-                description: info.consequenceLight,
-                color: Colors.amber.shade700,
-                icon: Icons.notifications_active_outlined,
-              ),
-              const SizedBox(height: 8),
-
-              // Level 2: Akibat Sedang
-              _ConsequenceTile(
-                level: '2. Akibat Menengah',
-                description: info.consequenceMedium,
-                color: Colors.orange.shade800,
-                icon: Icons.report_problem_outlined,
-              ),
-              const SizedBox(height: 8),
-
-              // Level 3: Akibat Fatal
-              _ConsequenceTile(
-                level: '3. Akibat Fatal / Berbahaya',
-                description: info.consequenceFatal,
-                color: Colors.red.shade700,
-                icon: Icons.dangerous_outlined,
-              ),
-              const SizedBox(height: 16),
-
-              // Perbandingan Biaya
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade200),
+                // Level 1: Akibat Ringan
+                _ConsequenceTile(
+                  level: '1. Akibat Awal / Ringan',
+                  description: info.consequenceLight,
+                  color: Colors.amber.shade700,
+                  icon: Icons.notifications_active_outlined,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Perbandingan Biaya Nyata:',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade900,
+                const SizedBox(height: 8),
+
+                // Level 2: Akibat Sedang
+                _ConsequenceTile(
+                  level: '2. Akibat Menengah',
+                  description: info.consequenceMedium,
+                  color: Colors.orange.shade800,
+                  icon: Icons.report_problem_outlined,
+                ),
+                const SizedBox(height: 8),
+
+                // Level 3: Akibat Fatal
+                _ConsequenceTile(
+                  level: '3. Akibat Fatal / Berbahaya',
+                  description: info.consequenceFatal,
+                  color: Colors.red.shade700,
+                  icon: Icons.dangerous_outlined,
+                ),
+                const SizedBox(height: 16),
+
+                // Perbandingan Biaya
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Perbandingan Biaya Nyata:',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade900,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Text('Ganti tepat waktu:'),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text('Ganti tepat waktu:'),
+                          ),
+                          Text(
                             'Rp ${_formatNumber(info.estimatedCostNow)}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.green,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Text('Jika rusak merembet/turun mesin:'),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text('Jika rusak merembet/turun mesin:'),
+                          ),
+                          Text(
                             'Rp ${_formatNumber(info.estimatedCostLater)}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.red,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
