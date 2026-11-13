@@ -32,6 +32,9 @@ class SharedPreferencesAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<User?> getProfile() => getCurrentUser();
+
+  @override
   Future<User> login({required String email, required String password}) async {
     final cleanEmail = email.trim().toLowerCase();
     final cleanPassword = password.trim();

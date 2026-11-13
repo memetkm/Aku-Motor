@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../motors/application/motor_providers.dart';
 import '../data/shared_preferences_auth_repository.dart';
 import '../domain/auth_repository.dart';
+import '../domain/profile_repository.dart';
 import '../domain/user.dart';
 
 class InMemoryAuthRepository implements AuthRepository {
@@ -10,6 +11,9 @@ class InMemoryAuthRepository implements AuthRepository {
 
   @override
   Future<User?> getCurrentUser() async => _currentUser;
+
+  @override
+  Future<User?> getProfile() async => _currentUser;
 
   @override
   Future<User> login({required String email, required String password}) async {
@@ -79,6 +83,10 @@ final authRepositoryProvider = Provider<AuthRepository>(
       return InMemoryAuthRepository();
     }
   },
+);
+
+final profileRepositoryProvider = Provider<ProfileRepository>(
+  (ref) => ref.watch(authRepositoryProvider),
 );
 
 final authStateProvider = AsyncNotifierProvider<AuthNotifier, User?>(

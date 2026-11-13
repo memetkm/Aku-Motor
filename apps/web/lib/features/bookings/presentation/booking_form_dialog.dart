@@ -110,6 +110,7 @@ class _BookingFormDialogState extends ConsumerState<BookingFormDialog> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     key: const Key('serviceTypeField'),
+                    isExpanded: true,
                     initialValue: _selectedServiceType,
                     decoration: const InputDecoration(
                       labelText: 'Jenis layanan servis',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/auth_providers.dart';
+import '../domain/validation.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -183,15 +184,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                         scrollPadding: const EdgeInsets.only(bottom: 80),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Email wajib diisi';
-                          }
-                          if (!value.contains('@') || !value.contains('.')) {
-                            return 'Format email tidak valid';
-                          }
-                          return null;
-                        },
+                        validator: ValidationRules.validateEmail,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -215,15 +208,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         textInputAction: TextInputAction.done,
                         scrollPadding: const EdgeInsets.only(bottom: 80),
                         onFieldSubmitted: (_) => _handleLogin(),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Kata sandi wajib diisi';
-                          }
-                          if (value.trim().length < 6) {
-                            return 'Kata sandi minimal 6 karakter';
-                          }
-                          return null;
-                        },
+                        validator: ValidationRules.validatePassword,
                       ),
                       const SizedBox(height: 20),
                       FilledButton(

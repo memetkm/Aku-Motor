@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/auth_providers.dart';
+import '../domain/validation.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -147,12 +148,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ),
                         textInputAction: TextInputAction.next,
                         scrollPadding: const EdgeInsets.only(bottom: 80),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Nama lengkap wajib diisi';
-                          }
-                          return null;
-                        },
+                        validator: (value) => ValidationRules.validateName(
+                          value,
+                          emptyMessage: 'Nama lengkap wajib diisi',
+                        ),
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
@@ -166,15 +165,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                         scrollPadding: const EdgeInsets.only(bottom: 80),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Email wajib diisi';
-                          }
-                          if (!value.contains('@') || !value.contains('.')) {
-                            return 'Format email tidak valid';
-                          }
-                          return null;
-                        },
+                        validator: ValidationRules.validateEmail,
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
@@ -188,15 +179,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.next,
                         scrollPadding: const EdgeInsets.only(bottom: 80),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Nomor HP wajib diisi';
-                          }
-                          if (value.trim().length < 8) {
-                            return 'Nomor HP terlalu pendek';
-                          }
-                          return null;
-                        },
+                        validator: (value) => ValidationRules.validatePhone(
+                          value,
+                          minLength: 8,
+                        ),
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
@@ -219,15 +205,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         obscureText: _obscurePassword,
                         textInputAction: TextInputAction.next,
                         scrollPadding: const EdgeInsets.only(bottom: 80),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Kata sandi wajib diisi';
-                          }
-                          if (value.trim().length < 6) {
-                            return 'Kata sandi minimal 6 karakter';
-                          }
-                          return null;
-                        },
+                        validator: ValidationRules.validatePassword,
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
@@ -241,12 +219,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         textInputAction: TextInputAction.done,
                         scrollPadding: const EdgeInsets.only(bottom: 80),
                         onFieldSubmitted: (_) => _handleRegister(),
-                        validator: (value) {
-                          if (value != _passwordController.text) {
-                            return 'Konfirmasi kata sandi tidak cocok';
-                          }
-                          return null;
-                        },
+                        validator: (value) =>
+                            ValidationRules.validateConfirmPassword(
+                          value,
+                          _passwordController.text,
+                        ),
                       ),
                       const SizedBox(height: 24),
                       FilledButton(

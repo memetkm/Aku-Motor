@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../application/auth_providers.dart';
 import '../domain/user.dart';
 import 'login_screen.dart';
+import 'profile_form.dart';
 
 class ProfileDialog extends ConsumerStatefulWidget {
   const ProfileDialog({required this.user, super.key});
@@ -133,34 +134,12 @@ class _ProfileDialogState extends ConsumerState<ProfileDialog> {
           child: SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             child: _isEditing
-                ? Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextFormField(
-                          key: const Key('profileNameField'),
-                          controller: _nameController,
-                          decoration: const InputDecoration(labelText: 'Nama Lengkap'),
-                          textInputAction: TextInputAction.next,
-                          scrollPadding: const EdgeInsets.only(bottom: 80),
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Nama wajib diisi' : null,
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          key: const Key('profilePhoneField'),
-                          controller: _phoneController,
-                          decoration: const InputDecoration(labelText: 'Nomor HP'),
-                          keyboardType: TextInputType.phone,
-                          textInputAction: TextInputAction.done,
-                          scrollPadding: const EdgeInsets.only(bottom: 80),
-                          onFieldSubmitted: (_) => _handleSave(),
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Nomor HP wajib diisi' : null,
-                        ),
-                      ],
-                    ),
+                ? ProfileForm(
+                    formKey: _formKey,
+                    nameController: _nameController,
+                    phoneController: _phoneController,
+                    isSubmitting: _isSubmitting,
+                    onSubmit: _handleSave,
                   )
                 : Column(
                     mainAxisSize: MainAxisSize.min,
