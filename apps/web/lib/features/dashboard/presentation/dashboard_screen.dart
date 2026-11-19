@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/logging/presentation/log_viewer_screen.dart';
 import '../../../shared/widgets/error_state.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../auth/presentation/login_screen.dart';
@@ -112,6 +113,16 @@ class DashboardScreen extends ConsumerWidget {
                 Navigator.pushNamed(context, LoginScreen.routeName);
               }
             },
+          ),
+          // 4. Runtime System Logs (Tracing)
+          IconButton(
+            key: const Key('systemLogButton'),
+            tooltip: 'Log Sistem (Tracing)',
+            icon: const Icon(Icons.terminal_outlined),
+            onPressed: () => Navigator.pushNamed(
+              context,
+              LogViewerScreen.routeName,
+            ),
           ),
           const SizedBox(width: 8),
         ],

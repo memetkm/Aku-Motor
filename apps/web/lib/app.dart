@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'core/logging/presentation/log_viewer_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/login_screen.dart';
 import 'features/auth/presentation/register_screen.dart';
@@ -29,6 +30,7 @@ class AkuMotorApp extends StatelessWidget {
         RegisterScreen.routeName: (_) => const RegisterScreen(),
         NotificationListScreen.routeName: (_) => const NotificationListScreen(),
         NearbyWorkshopsScreen.routeName: (_) => const NearbyWorkshopsScreen(),
+        LogViewerScreen.routeName: (_) => const LogViewerScreen(),
       },
     );
   }
