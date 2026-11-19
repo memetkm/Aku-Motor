@@ -13,3 +13,5 @@ apps/api/prisma/migrations/dev.db*
 build/
 apps/web/android/.gradle/
 apps/web/android/local.properties
+release/
+*.apk
