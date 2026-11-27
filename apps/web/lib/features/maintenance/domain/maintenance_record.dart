@@ -37,14 +37,26 @@ class MaintenanceRecord {
     return limit - currentKilometer;
   }
 
+  static DateTime calculateDueDate(DateTime baseDate, int intervalMonths) {
+    final totalMonths = baseDate.month + intervalMonths;
+    final targetYear = baseDate.year + (totalMonths - 1) ~/ 12;
+    final targetMonth = (totalMonths - 1) % 12 + 1;
+    final daysInTargetMonth = DateTime(targetYear, targetMonth + 1, 0).day;
+    final targetDay = baseDate.day > daysInTargetMonth ? daysInTargetMonth : baseDate.day;
+    return DateTime(
+      targetYear,
+      targetMonth,
+      targetDay,
+      baseDate.hour,
+      baseDate.minute,
+      baseDate.second,
+    );
+  }
+
   int calculateRemainingDays({DateTime? now}) {
     final current = now ?? DateTime.now();
     final info = PartCatalog.getInfo(partType);
-    final due = DateTime(
-      lastReplacedAt.year,
-      lastReplacedAt.month + info.intervalMonth,
-      lastReplacedAt.day,
-    );
+    final due = calculateDueDate(lastReplacedAt, info.intervalMonth);
     return due.difference(current).inDays;
   }
 
